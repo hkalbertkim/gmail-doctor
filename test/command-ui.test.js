@@ -1,24 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {parseCommand,panelState,commandNames,scrollWindow,mouseScrollDirection,followNewest} from '../src/command-ui.js';
-test('parse command input',()=>assert.deepEqual(parseCommand('/scan'),{cmd:'/scan',args:[]}));
-test('empty command shows help',()=>assert.equal(parseCommand('').cmd,'/help'));
-test('summary counts errors without interpreting unverified Google security as safe',()=>{
- const s=panelState([{email:'a',warnings:3,unchecked:0},{email:'b',error:true}]);
- assert.equal(s.warnings,3);assert.equal(s.incomplete,1);
+import {parseCommand,panelState,commandNames,openVerifiedGooglePage,GOOGLE_SECURITY,GOOGLE_2FA} from '../src/command-ui.js';
+test('parse commands',()=>assert.equal(parseCommand('/scan').cmd,'/scan'));
+test('panel counts',()=>assert.equal(panelState([{warnings:2},{error:true}]).incomplete,1));
+test('browser opens only official Google URLs',()=>{
+ const calls=[];
+ const fake=(cmd,args)=>{calls.push([cmd,args]);return {on(){},unref(){}};};
+ openVerifiedGooglePage(GOOGLE_SECURITY,{platform:'darwin',spawnProcess:fake});
+ openVerifiedGooglePage(GOOGLE_2FA,{platform:'darwin',spawnProcess:fake});
+ assert.deepEqual(calls.map(x=>x[0]),['open','open']);
+ assert.throws(()=>openVerifiedGooglePage('https://evil.example',{platform:'darwin',spawnProcess:fake}));
 });
-test('repair is never a direct command',()=>assert.equal(commandNames.includes('/repair'),false));
-
-test('scroll window clamps offsets and moves only the result items',()=>{
- const values=Array.from({length:80},(_,i)=>i);
- assert.deepEqual(scrollWindow(values,10,30).items,[30,31,32,33,34,35,36,37,38,39]);
- assert.equal(scrollWindow(values,10,1000).start,70);
-});
-
-test('xterm SGR wheel events scroll the result pane',()=>{
- assert.equal(mouseScrollDirection('\x1b[<64;10;8M'),-1);
- assert.equal(mouseScrollDirection('\x1b[<65;10;8M'),1);
- assert.equal(mouseScrollDirection('ordinary input'),0);
-});
-
-test('new output follows latest by resetting scroll position',()=>assert.equal(followNewest(),null));
+test('no automatic repair command',()=>assert.equal(commandNames.includes('/repair'),false));

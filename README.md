@@ -177,3 +177,7 @@ The interactive dashboard runs in a terminal alternate screen so normal terminal
 ### Terminal mouse-wheel support (v0.8.3)
 
 On terminals supporting xterm SGR mouse reporting, Gmail Doctor captures wheel-up/down and scrolls the RESULTS viewport rather than terminal scrollback. The input box remains on screen. Arrow keys and PageUp/PageDown also work. Mouse reporting is disabled on exit. Terminal applications can have different scrollback settings; if your terminal still scrolls its history, try the keyboard controls and report the terminal name/version.
+
+## Inline terminal mode (v0.9)
+
+The interactive CLI now uses terminal scrollback (Ink Static) rather than taking over the alternate screen. Previous output remains in the terminal history and new results append at the bottom above a compact live command composer. The commands `/security` and `/2fa` open the corresponding **official Google pages** in your default browser. Google account security checks remain manual and NOT VERIFIED until you complete them with Google. No automatic filter repair was added.
