@@ -9,6 +9,7 @@ import { createInterface } from 'node:readline/promises';
 import { stdin, stdout } from 'node:process';
 import { assess, readSettings, applyAction } from '../src/core.js';
 import { renderReport, renderSummary } from '../src/presentation.js';
+import { logo, layout } from '../src/theme.js';
 
 const scope = 'openid email https://www.googleapis.com/auth/gmail.settings.basic';
 const appDir = join(homedir(), '.gmail-doctor');
@@ -18,6 +19,8 @@ const args = process.argv.slice(2);
 const command = args[0] || 'help';
 const selectedAccount = args.includes('--account') ? args[args.indexOf('--account') + 1]?.toLowerCase() : null;
 const demo = args.includes('--demo');
+const pretty = !args.includes('--no-color') && !args.includes('--json') && process.stdout.isTTY && !process.env.NO_COLOR && process.env.TERM!=='dumb';
+const styled = output => pretty ? layout(output,{color:true}) : output;
 const fixture = {
   autoForwarding: { enabled: true, emailAddress: 'unknown@example.net' },
   filters: [{ id: 'suspicious-1', criteria: { subject: 'security alert' }, action: { addLabelIds: ['TRASH'], removeLabelIds: ['INBOX'] } }],
@@ -27,7 +30,7 @@ const fixture = {
 function help() {
   console.log(`Gmail Doctor v0.2 — Gmail settings audit and repair
 Usage:
-  gmail-doctor scan [--demo] [--json]
+  gmail-doctor scan [--demo] [--json] [--no-color]
   gmail-doctor repair [--demo] [--dry-run]
   gmail-doctor setup --client /path/to/desktop-client.json
   gmail-doctor account add
@@ -168,7 +171,7 @@ async function report(api, jsonMode=false, displayAccount=null) {
   const assessed = assess(settings);
   const result = {...assessed, errors, coverage: Object.keys(settings)};
   if (jsonMode) console.log(JSON.stringify(result,null,2));
-  else console.log(renderReport({email: displayAccount, findings: assessed.findings, errors, demo}));
+  else console.log((pretty ? logo()+'\n' : '')+styled(renderReport({email: displayAccount, findings: assessed.findings, errors, demo})));
 
   return {settings,...result};
 }
@@ -221,7 +224,7 @@ async function main() {
         summary.push({email,warnings:result.findings.filter(f=>f.severity==='warning').length,unchecked:result.errors.length});
       } catch(e) {console.log('[ERROR] '+e.message);summary.push({email,error:e.message});}
     }
-    console.log(renderSummary(summary));
+    console.log(styled(renderSummary(summary)));
     if (summary.some(x=>x.error||x.unchecked)) process.exitCode=1;
     return;
   }

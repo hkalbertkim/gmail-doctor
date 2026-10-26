@@ -80,3 +80,7 @@ MIT Licensed. Contributions welcome for independent tests, threat scenarios, and
 Run `gmail-doctor account add` once for each Gmail account, selecting a different account in the Google login screen. Each refresh token is stored separately in macOS Keychain by account. The local `~/.gmail-doctor/accounts.json` contains **email addresses only**, never tokens. `scan --all` reports each account separately; **repairs always require one explicit account** and confirmation for each action. Use `logout --account you@gmail.com` to delete its local token.
 
 The one-time setup command stores the OAuth client JSON locally at ~/.gmail-doctor/oauth-client.json with restricted filesystem permissions. It does not upload credentials.
+
+## Terminal display
+
+Interactive TTY output uses ANSI colors and an ASCII wordmark. Non-TTY or redirected output is plain text. Use `--no-color` or `NO_COLOR=1` to suppress color. `--json` remains machine-readable.
