@@ -32,10 +32,11 @@ const fixture = {
   forwardingAddresses: [{forwardingEmail:'unknown@example.net'}]
 };
 function help() {
-  console.log(`Gmail Doctor v0.9 — Gmail settings audit and repair
+  console.log(`Gmail Doctor v0.9.3 — Gmail settings audit and repair
 Usage:
   gmail-doctor                    # Interactive dashboard
-  gmail-doctor ui                 # Interactive dashboard
+  gmail-doctor ui                 # Stable interactive dashboard
+  gmail-doctor ui-experimental    # Experimental inline UI (not release-ready)
   gmail-doctor takeover-check  # Guided review in the interactive dashboard
   gmail-doctor scan [--demo] [--json] [--no-color]
   gmail-doctor repair [--demo] [--dry-run]
@@ -205,7 +206,7 @@ async function main() {
     return;
   }
   if (command==='help'||args.includes('--help')) { help(); return; }
-  if (command==='ui') {
+  if (command==='ui-experimental') {
     return launchCommandUi({
       getAccounts:accounts,
       scanAccount: async email=>{

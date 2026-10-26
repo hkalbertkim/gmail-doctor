@@ -185,3 +185,7 @@ The interactive CLI now uses terminal scrollback (Ink Static) rather than taking
 ## Clean launch (v0.9.1)
 
 On an interactive terminal, Gmail Doctor clears the visible display and moves the cursor to the top before rendering its inline transcript and command composer. This does not use Alternate Screen, so new output can still enter normal terminal scrollback. Existing scrollback may remain available depending on terminal settings. Use `scan --all` for scripting.
+
+## UI stability note (v0.9.3)
+
+The v0.9 inline UI has not matched the expected terminal scrollback and bottom-composer behavior on macOS Terminal. The default `gmail-doctor` command therefore uses the previously tested menu-based interactive UI while the renderer is redesigned. `gmail-doctor ui-experimental` exposes the unfinished inline UI for development only. The scan and filter repair behavior is unchanged. This is an explicit rollback of the unverified interface, not a claim of feature parity with Codex or Claude Code.
