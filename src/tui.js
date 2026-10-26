@@ -79,6 +79,7 @@ export async function launchTui({getAccounts, addAccount, scanAccount, saveBacku
     if(choice==='add') {await addAccount();continue;}
     if(choice==='review') {await review();continue;}
     if(choice==='scan') {
+      if(!list.length) { console.log('No accounts connected. Choose Add Google account first.'); continue; }
       for(const email of list) {
         try {await inspect(email);}
         catch(e) {console.log('Scan incomplete for '+email+': '+e.message);results.set(email,{error:e.message});}
