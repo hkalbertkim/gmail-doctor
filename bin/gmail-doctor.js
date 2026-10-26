@@ -215,7 +215,12 @@ async function main() {
       },
       saveBackup,
       provider: async email=>gmailApi(await accessToken(email)),
-      startWithTakeover: command==='takeover-check'
+      startWithTakeover: command==='takeover-check',
+      checkBaseline: async(email,settings)=>{
+        const filename=join(appDir,'baselines',encodeURIComponent(email)+'.json');
+        try{return compareBaseline(JSON.parse(await readFile(filename,'utf8')),settings);}
+        catch(e){if(e.code==='ENOENT')return null; throw e;}
+      }
     });
   }
   if (command === 'baseline') {

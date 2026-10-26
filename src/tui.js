@@ -18,7 +18,7 @@ export function dashboard(rows=[]) {
   head.push(line,'Note: Gmail settings scan does not prove account security.');
   return head.join('\n');
 }
-export async function launchTui({getAccounts, addAccount, scanAccount, saveBackup, provider, demo=false, startWithTakeover=false}) {
+export async function launchTui({getAccounts, addAccount, scanAccount, saveBackup, provider, demo=false, startWithTakeover=false, checkBaseline=async()=>null}) {
   if(!process.stdin.isTTY || !process.stdout.isTTY) throw new Error('Interactive mode requires a terminal. Use gmail-doctor scan --all for scripts.');
   const results=new Map();
   const chooseAccount=async()=> {
@@ -28,8 +28,11 @@ export async function launchTui({getAccounts, addAccount, scanAccount, saveBacku
   };
   const inspect=async email=>{
     const data=await scanAccount(email);
+    const baseline=await checkBaseline(email,data.settings);
+    data.baseline=baseline;
     results.set(email,data);
     console.log(layout(renderReport({email,findings:data.findings,errors:data.errors,demo}),{color:!process.env.NO_COLOR}));
+    if(baseline)console.log('Trusted baseline: '+(baseline.changed?baseline.added.length+' new/modified · '+baseline.removed.length+' removed/modified':'No filter changes detected'));
     return data;
   };
   const takeover=async()=>{
@@ -99,7 +102,23 @@ export async function launchTui({getAccounts, addAccount, scanAccount, saveBacku
     const after=await inspect(email);
     console.log(`Verified: ${after.findings.filter(x=>x.severity==='warning').length} warning(s) remaining. Check account security separately.`);
   };
-  if (startWithTakeover) { await takeover(); return; }
+  const scanAll=async()=>{
+    const list=await getAccounts();
+    if(!list.length){console.log('No accounts connected. Choose Add Google account first.');return;}
+    for(const email of list){
+      try{await inspect(email);}
+      catch(e){console.log('Scan incomplete for '+email+': '+e.message);results.set(email,{error:e.message});}
+    }
+    console.log('
+ACCOUNT SECURITY CHECKS — GOOGLE REVIEW REQUIRED');
+    console.log('Gmail API cannot verify 2FA, login sessions, recovery methods, Family Link, or third-party access.');
+    console.log('Review Google Account security separately for each account:');
+    for(const email of list) console.log('  '+email+'  →  https://myaccount.google.com/security-checkup');
+    console.log('2-Step Verification: https://myaccount.google.com/signinoptions/two-step-verification');
+    console.log('Unreviewed categories remain NOT VERIFIED; no account changes were made.');
+  };
+  if (startWithTakeover) {await scanAll(); return;}
+  await scanAll();
   while(true) {
     const list=await getAccounts();
     console.log('\n'+dashboard(list.map(email=>({email,...(results.get(email)||{})}))));
@@ -116,10 +135,7 @@ export async function launchTui({getAccounts, addAccount, scanAccount, saveBacku
     if(choice==='review') {await review();continue;}
     if(choice==='scan') {
       if(!list.length) { console.log('No accounts connected. Choose Add Google account first.'); continue; }
-      for(const email of list) {
-        try {await inspect(email);}
-        catch(e) {console.log('Scan incomplete for '+email+': '+e.message);results.set(email,{error:e.message});}
-      }
+      await scanAll();
     }
   }
 }

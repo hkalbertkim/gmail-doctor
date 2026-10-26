@@ -22,7 +22,7 @@ A local-first, open-source terminal tool for reviewing Gmail forwarding rules, p
 
 **Inspired by real Gmail account-takeover reports.** People have reported losing access after an attacker changed sign-in devices, recovery details, or Family Link supervision. Read the original discussions and learn what we can and cannot address in [Real Reddit user reports](docs/REDDIT_USER_REPORTS.md).
 
-Run `gmail-doctor` (or `gmail-doctor takeover-check`) and select **Account Takeover Check**. The tool guides you through:
+Run `gmail-doctor` (or `gmail-doctor takeover-check`): connected accounts are **automatically scanned first**, followed by a single consolidated checklist of Google security items that cannot be checked through Gmail API. The tool guides you through:
 - **Two-Step Verification (2FA) first:** Open Google's official settings, check whether it is on, and enable it there if needed. Gmail Doctor **cannot read or toggle the 2FA setting itself**.
 - Review recent security events, unfamiliar signed-in devices, recovery options, and connected apps through Google.
 - Record what you personally reviewed. Unchecked items are **not** shown as safe.
@@ -157,3 +157,7 @@ gmail-doctor baseline check --account you@gmail.com
 The comparison includes filter criteria and actions, excludes Gmail's opaque filter ID, and stores local SHA-256 fingerprints in `~/.gmail-doctor/baselines`. A change is reported as added/removed fingerprints; it is not proof of malicious behavior. Saving again replaces the previous trusted baseline; retain a copy if you need history. No Gmail changes are made. The check exits with status 2 when a change is detected.
 
 Implementation references: [gmailctl](https://github.com/mbrt/gmailctl) (MIT) and [GAMADV-XTD3 filter documentation](https://github.com/taers232c/GAMADV-XTD3/wiki/Users-Gmail-Filters). No third-party source code was copied.
+
+## v0.7 automatic-first dashboard
+
+Running `gmail-doctor` immediately scans every connected account for Gmail settings risks and compares any locally stored trusted baseline. After the scan it displays one summary of additional checks that **must be reviewed directly with Google** (2-Step Verification, security events, devices, recovery settings and third-party access). It never silently assumes those unverified categories are safe. It performs no automatic repair. The interactive menu remains available after the initial scan.
