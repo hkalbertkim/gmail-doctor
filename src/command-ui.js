@@ -30,7 +30,7 @@ export async function launchCommandUi({getAccounts,scanAccount,checkBaseline}) {
   const {stdout}=useStdout();
   const width=Math.max(42,(stdout.columns||80)-2);
   const height=Math.max(16,(stdout.rows||30)-1);
-  const contentHeight=Math.max(4,height-14);
+  const contentHeight=Math.max(4,height-13);
   const [command,setCommand]=useState('');
   const commandRef=useRef('');
   const updateCommand=value=>{commandRef.current=value;setCommand(value);};
@@ -113,18 +113,22 @@ export async function launchCommandUi({getAccounts,scanAccount,checkBaseline}) {
   });
   const p=panelState(rows,step);
   return e(Box,{flexDirection:'column',width,height,overflowY:'hidden'},
-   e(Box,{borderStyle:'round',borderColor:'cyan',paddingX:1,flexDirection:'column',flexShrink:0},
-    e(Text,{bold:true,color:'cyan'},'◈ GMAIL DOCTOR  ·  SECURITY CENTER'),
-    e(Text,null,'Accounts ',p.accounts,'   Warnings ',p.warnings,'   Incomplete ',p.incomplete),
+   e(Box,{flexDirection:'column',flexShrink:0,paddingX:1},
+    e(Text,{bold:true,color:'cyan'},'◆ Gmail Doctor'),
+    e(Text,{color:'gray'},'Accounts ',p.accounts,'  ·  Warnings ',p.warnings,'  ·  Incomplete ',p.incomplete),
     e(Text,{color:running?'yellow':'green',wrap:'truncate-end'},step)),
-   e(Box,{borderStyle:'round',borderColor:'gray',paddingX:1,flexDirection:'column',height:contentHeight,overflowY:'hidden',flexShrink:0},
-    e(Text,{bold:true,color:'cyan'},'RESULTS · '+(running?'SCANNING':'READY')+'   '+(maxScroll?('↑↓ scroll '+(offset+1)+'–'+Math.min(entries.length,offset+available)+'/'+entries.length):'')),
+   e(Box,{height:1,flexShrink:0}),
+   e(Box,{flexDirection:'column',height:contentHeight+2,overflowY:'hidden',flexShrink:0,paddingX:1},
+    e(Text,{bold:true,color:'gray'},(running?'Scanning':'Results')+(maxScroll?('  ·  '+(offset+1)+'–'+Math.min(entries.length,offset+available)+'/'+entries.length):'')),
     ...visible.items.map((item,i)=>e(Text,{key:offset+i,color:item.color,wrap:'truncate-end'},item.text))),
    e(Box,{flexGrow:1,minHeight:0}),
-   e(Box,{borderStyle:'round',borderColor:'cyan',paddingX:1,flexShrink:0},
-    e(Text,{color:'green'},'› '),e(Text,{wrap:'truncate-end'},command||'Type /help or /scan ...')),
-   e(Text,{color:'gray',wrap:'truncate-end'},'/scan  /accounts  /security  /review  /help  /quit  ·  wheel/↑↓/PgUp scroll'),
-   e(Text,{color:'yellow',wrap:'truncate-end'},'2FA, login sessions and recovery options: NOT VERIFIED (Google review required)'));
+   e(Text,{color:'gray'},'─'.repeat(Math.max(1,width-1))),
+   e(Box,{paddingX:1,flexShrink:0},
+    e(Text,{color:'green'},'› '),e(Text,{wrap:'truncate-end'},command||'Ask Gmail Doctor or type /help ...')),
+   e(Text,{color:'gray'},'─'.repeat(Math.max(1,width-1))),
+   e(Text,{color:'gray',wrap:'truncate-end'},'  /scan  /accounts  /security  /review  /help  /quit   ·   ↑↓ / wheel scroll'),
+   e(Text,{color:'yellow',wrap:'truncate-end'},'  2FA, sessions, recovery: NOT VERIFIED · Review directly with Google'));
+
 
  }
  const alt=process.stdout.isTTY && process.env.TERM!=='dumb';
