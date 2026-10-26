@@ -1,90 +1,133 @@
+<div align="center">
+
+<img src="assets/readme-hero.svg" alt="Gmail Doctor — Audit Gmail settings. Keep your inbox yours." width="100%" />
+
 # Gmail Doctor
 
-**Detect suspicious Gmail settings. Review fixes. Repair with your explicit approval.**
+**Audit Gmail settings. Keep your inbox yours.**
 
-Local-first, open-source CLI for Gmail accounts you own. No mail content is downloaded, no server is operated by this project, and nothing is changed without per-action confirmation.
+[![Release](https://img.shields.io/github/v/release/hkalbertkim/gmail-doctor)](https://github.com/hkalbertkim/gmail-doctor/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+![Status](https://img.shields.io/badge/status-developer%20preview-orange)
 
-> **Early developer release.** This is not a complete compromise detection tool, and cannot recover a locked-out account. It has not yet been validated against a real Gmail account. Google OAuth restricted-scope app verification may affect consumer onboarding.
+A local-first, open-source terminal tool for reviewing Gmail forwarding rules, potentially risky filters, and settings across multiple Google accounts.
 
-## Try the safe demo
+[Quick start](#quick-start) · [Connect Gmail](#connect-your-google-account) · [Safety](#security-and-limitations) · [Privacy](docs/PRIVACY.md) · [Terms](docs/TERMS.md)
 
-Requirements: Node.js 20+.
+</div>
 
-```sh
+> **Developer Preview.** Google OAuth verification is pending. Connecting your own account currently requires a Google Cloud **Desktop OAuth client** and approved test access. No public one-click sign-in yet.
+
+## What it does
+
+| Capability | Supported today |
+| --- | --- |
+| Scan multiple connected Gmail accounts | Yes |
+| Identify mail-forwarding filters and filters that trash or hide messages | Yes |
+| Review sender aliases, POP/IMAP, and configured forwarding addresses | Yes |
+| Keyboard-driven interactive terminal dashboard | Yes |
+| Delete **selected** Gmail filters after explicit approval | Yes |
+| Save a local settings backup before deletion | Yes |
+| Restore filters automatically from backup | **Not yet** |
+| Detect stolen logins, unknown sessions, Family Link or compromised recovery info | **No** |
+
+**A warning is not proof of hacking.** Legitimate forwarding rules can be flagged. Confirm who created a rule before removing it. Gmail Doctor cannot recover a locked-out Google account.
+
+## Quick start
+
+Node.js 20+ is required. The current credential store uses **macOS Keychain**.
+
+```bash
 git clone https://github.com/hkalbertkim/gmail-doctor.git
 cd gmail-doctor
-npm test
-node bin/gmail-doctor.js scan --demo
-node bin/gmail-doctor.js repair --demo
+npm ci
+npm link
+
+# Run without connecting to Gmail
+gmail-doctor scan --demo
+
+# Open the interactive terminal dashboard
+gmail-doctor
 ```
 
-The demo uses a fictional account and performs **no authentication and no writes**.
+The demo uses fictional settings; it never logs into Google or modifies an account.
 
-## Connect your Gmail (advanced testers)
+## Connect your Google account
 
-1. Visit Google Cloud Console and create/select a project.
-2. Enable the **Gmail API**.
-3. Configure Google Auth Platform OAuth consent screen and add yourself as a test user where required.
-4. Create an OAuth Client ID of type **Desktop app**, download its JSON file to a private folder outside the repository.
-5. In your terminal run:
+Until Google approves the public OAuth application:
 
-```sh
-gmail-doctor setup --client "$HOME/Downloads/google-desktop-oauth.json"
-node bin/gmail-doctor.js account add  # Opens Google login for each account
-node bin/gmail-doctor.js account list
-node bin/gmail-doctor.js scan --all
-node bin/gmail-doctor.js repair --account you@gmail.com --dry-run
-node bin/gmail-doctor.js repair --account you@gmail.com
+1. Create/select a project in [Google Cloud Console](https://console.cloud.google.com/).
+2. Enable the **Gmail API** and configure the OAuth consent screen (External / Testing for your test accounts).
+3. Register your email as an approved **Test user**.
+4. Create a **Desktop app** OAuth client and download its JSON **outside** this repository.
+5. Configure the CLI once:
+
+```bash
+gmail-doctor setup --client ~/Downloads/your-desktop-oauth.json
+gmail-doctor account add --account you@gmail.com
+gmail-doctor account list
+gmail-doctor scan --all
 ```
 
-The browser opens Google's actual login page. The requested OAuth scopes are `openid`, `email`, and `gmail.settings.basic`. Refresh token is stored in macOS Keychain; OAuth client JSON stays only at the path you provide. Settings backups are stored with mode 0600 under `~/.gmail-doctor/backups`. There is **no Gmail password prompt**.
+To add more accounts, register them as permitted OAuth test users, then repeat `gmail-doctor account add --account other@example.com`. Google opens the browser for consent; **never enter your Google password in Gmail Doctor**.
 
-**Permission disclosure:** `gmail.settings.basic` can modify some mailbox settings; the OAuth permission itself is not technically read-only. Treat this CLI as powerful. A limited demo profile requires Google consent-screen tester access; general-use Google OAuth verification is separate.
+## Interactive scanning and repair
 
-## What it inspects
+Run `gmail-doctor` for an interactive dashboard. Arrow keys navigate, Space selects checkboxes, Enter advances.
 
-- Automatic forwarding enabled to an address.
-- Filters that forward, trash, skip inbox, or mark messages read.
-- Send-as aliases requiring manual review.
-- POP/IMAP status.
-- Configured forwarding addresses.
+The repair flow is deliberately explicit:
 
-## Repairs
+1. Choose an account and review the findings.
+2. Select only filters **you intend to delete**.
+3. Inspect the repair plan; type `REPAIR` to confirm.
+4. The CLI rechecks the selected filters, saves a local settings backup, applies authorized deletions, and rescans.
 
-Automatic forwarding must be disabled **manually** in Gmail Settings → Forwarding and POP/IMAP. Google's updateAutoForwarding API requires Workspace service-account domain-wide delegation and is not available to consumer desktop OAuth.
+You can inspect a repair plan without making changes:
 
-Only one automated operation in v0.2: **delete an individually selected filter**. A local settings snapshot is created before any repairs, but automatic rollback is **not** implemented. Do not approve removal of filters you recognize. Repeat scan after repairs.
+```bash
+gmail-doctor repair --account you@gmail.com --dry-run
+```
 
-**Not checked:** active device sessions, stolen cookies, password changes, recovery email/phone, Family Link, third-party OAuth apps. **Not supported:** reclaiming inaccessible Gmail accounts, automatic send-as alias deletion for consumer accounts, automatic OAuth grant revocation. Use [Google Security Checkup](https://myaccount.google.com/security-checkup) and [Google Account Recovery](https://accounts.google.com/signin/recovery).
+**Warning:** Deleting a filter can disrupt expected workflows. Gmail Doctor currently **cannot automatically restore a deleted filter**. A settings backup does not mean rollback is available. Do not select rules you recognize and need.
 
-## Security and privacy
+## CLI reference
 
-- Scans account settings only; no Gmail message-body or attachment access.
-- Makes no third-party analytics/network requests.
-- OAuth authorization talks directly to Google's endpoints.
-- No automatic changes. Every repair requires typing `YES`.
-- A partial scan disables repairs.
-- Never commit OAuth credentials, refresh tokens or local backups.
+```text
+gmail-doctor                                    Interactive dashboard
+gmail-doctor scan --demo                        Safe sample scan
+gmail-doctor account add --account EMAIL        Connect another account
+gmail-doctor account list                       List registered accounts
+gmail-doctor scan --all                         Scan all connected accounts
+gmail-doctor scan --account EMAIL               Scan one account
+gmail-doctor scan --account EMAIL --json        Structured output
+gmail-doctor repair --account EMAIL --dry-run   Review, no writes
+gmail-doctor repair --account EMAIL             Explicitly approve changes
+gmail-doctor logout --account EMAIL             Remove local token
+```
 
-## Development
+## Security and limitations
 
-```sh
+- Reads Gmail **settings**, not message bodies or attachments.
+- Uses Google's OAuth sign-in; never collects Gmail passwords.
+- Stores refresh tokens in macOS Keychain; account IDs and settings backups remain on the local machine.
+- Sends no mailbox content to a Gmail Doctor backend; network requests to Google are necessary for OAuth and Gmail API.
+- OAuth scope `gmail.settings.basic` can **modify** Gmail settings; it is **not a read-only scope**.
+- Does not scan sign-in sessions, stolen cookies, recovery options, Google Family Link or third-party OAuth grants.
+- A clean scan of available settings **does not prove the account is safe**.
+- Some setting changes require manual action in [Gmail Settings](https://mail.google.com/mail/u/0/#settings/general) or [Google Security Checkup](https://myaccount.google.com/security-checkup).
+
+Security concerns: open a [GitHub issue](https://github.com/hkalbertkim/gmail-doctor/issues) without posting email addresses, OAuth tokens, or personal mailbox data.
+
+## Privacy, terms and contributing
+
+[Privacy Policy](docs/PRIVACY.md) · [Terms of Use](docs/TERMS.md) · [MIT License](LICENSE)
+
+Run the checks before contributing:
+
+```bash
+npm ci
 npm test
 npm run check
 ```
 
-MIT Licensed. Contributions welcome for independent tests, threat scenarios, and Google OAuth verification improvements.
-
-## Multiple Google accounts
-
-Run `gmail-doctor account add` once for each Gmail account, selecting a different account in the Google login screen. Each refresh token is stored separately in macOS Keychain by account. The local `~/.gmail-doctor/accounts.json` contains **email addresses only**, never tokens. `scan --all` reports each account separately; **repairs always require one explicit account** and confirmation for each action. Use `logout --account you@gmail.com` to delete its local token.
-
-The one-time setup command stores the OAuth client JSON locally at ~/.gmail-doctor/oauth-client.json with restricted filesystem permissions. It does not upload credentials.
-
-## Terminal display
-
-Interactive TTY output uses ANSI colors and an ASCII wordmark. Non-TTY or redirected output is plain text. Use `--no-color` or `NO_COLOR=1` to suppress color. `--json` remains machine-readable.
-
-## Interactive dashboard (v0.4)
-
-Run `gmail-doctor` or `gmail-doctor ui` in a real terminal. Choose Scan all accounts, Review findings / repair selected filters, Add Google account or Exit. Arrow keys navigate, Space selects checkbox items, Enter confirms. Filtering rules are only removed after selecting them, typing the exact word `REPAIR`, a fresh preflight scan, and a local backup. Changes to rules between review and approval abort repair. The existing `scan --all` and `--json` automation interfaces remain available.
+This project is **independent**, and is not affiliated with, sponsored by, or endorsed by Google. Gmail and the Gmail logo are trademarks of Google LLC.
