@@ -9,6 +9,12 @@ export function parseCommand(value) {
 export function panelState(rows=[],step='Ready') {
  return {accounts:rows.length,warnings:rows.reduce((n,r)=>n+(r.warnings||0),0),incomplete:rows.filter(r=>r.error||r.unchecked).length,step};
 }
+export function scrollWindow(items, pageSize, offset=0) {
+ const size=Math.max(1,Math.floor(pageSize));
+ const max=Math.max(0,items.length-size);
+ const start=Math.max(0,Math.min(max,offset));
+ return {items:items.slice(start,start+size),start,max};
+}
 export async function launchCommandUi({getAccounts,scanAccount,checkBaseline}) {
  if(!process.stdin.isTTY||!process.stdout.isTTY) throw new Error('The dashboard requires an interactive terminal.');
  const e=React.createElement;
@@ -16,6 +22,8 @@ export async function launchCommandUi({getAccounts,scanAccount,checkBaseline}) {
   const {exit}=useApp();
   const {stdout}=useStdout();
   const width=Math.max(42,(stdout.columns||80)-2);
+  const height=Math.max(16,(stdout.rows||30)-1);
+  const contentHeight=Math.max(4,height-14);
   const [command,setCommand]=useState('');
   const commandRef=useRef('');
   const updateCommand=value=>{commandRef.current=value;setCommand(value);};
@@ -24,6 +32,7 @@ export async function launchCommandUi({getAccounts,scanAccount,checkBaseline}) {
   const [accounts,setAccounts]=useState([]);
   const [rows,setRows]=useState([]);
   const [messages,setMessages]=useState(['Starting read-only account scan...']);
+  const [scroll,setScroll]=useState(null);
   const add=msg=>setMessages(old=>[...old,String(msg)].slice(-14));
   async function scan(){
    setRunning(true);
@@ -52,7 +61,20 @@ export async function launchCommandUi({getAccounts,scanAccount,checkBaseline}) {
    } finally {setRunning(false);}
   }
   useEffect(()=>{scan();},[]);
-  useInput((key,k)=>{
+  const entries=[
+    ...rows.map(row=>({text:row.email+'  '+(row.error?'SCAN FAILED':row.warnings+' warning(s)'+(row.unchecked?' · INCOMPLETE':'')),color:row.error?'red':row.warnings?'yellow':'green'})),
+    {text:'────────── Activity ──────────',color:'gray'},
+    ...messages.map(text=>({text,color:'white'}))
+  ];
+  const available=contentHeight-3;
+  const maxScroll=Math.max(0,entries.length-available);
+  const offset=scroll===null?maxScroll:Math.min(scroll,maxScroll);
+  const visible=scrollWindow(entries,available,offset);
+  useInput((key,k)=> {
+   if(k.pageUp || key==='[5~'){setScroll(current=>Math.max(0,(current===null?maxScroll:current)-Math.max(1,available-2)));return;}
+   if(k.pageDown || key==='[6~'){setScroll(current=>Math.min(maxScroll,(current===null?maxScroll:current)+Math.max(1,available-2)));return;}
+   if(k.upArrow && commandRef.current===''){setScroll(current=>Math.max(0,(current===null?maxScroll:current)-1));return;}
+   if(k.downArrow && commandRef.current===''){setScroll(current=>Math.min(maxScroll,(current===null?maxScroll:current)+1));return;}
    if(k.escape){updateCommand('');return;}
    if(k.return){
     const {cmd,args}=parseCommand(commandRef.current);updateCommand('');
@@ -75,21 +97,27 @@ export async function launchCommandUi({getAccounts,scanAccount,checkBaseline}) {
    if(!k.ctrl&&!k.meta&&key&&key.length===1)updateCommand(commandRef.current.length<120?commandRef.current+key:commandRef.current);
   });
   const p=panelState(rows,step);
-  return e(Box,{flexDirection:'column',width},
-   e(Box,{borderStyle:'round',borderColor:'cyan',paddingX:1,flexDirection:'column'},
+  return e(Box,{flexDirection:'column',width,height,overflowY:'hidden'},
+   e(Box,{borderStyle:'round',borderColor:'cyan',paddingX:1,flexDirection:'column',flexShrink:0},
     e(Text,{bold:true,color:'cyan'},'◈ GMAIL DOCTOR  ·  SECURITY CENTER'),
     e(Text,null,'Accounts ',p.accounts,'   Warnings ',p.warnings,'   Incomplete ',p.incomplete),
-    e(Text,{color:running?'yellow':'green'},step)),
-   e(Box,{borderStyle:'round',borderColor:'gray',paddingX:1,flexDirection:'column',height:Math.max(10,Math.min(23,(stdout.rows||30)-11))},
-    e(Text,{bold:true,color:'cyan'},'RESULTS · '+(running?'SCANNING':'READY')),
-    ...rows.map(row=>e(Text,{key:row.email,color:row.error?'red':row.warnings?'yellow':'green'},row.email+'  '+(row.error?'SCAN FAILED':row.warnings+' warning(s)'+(row.unchecked?' · INCOMPLETE':'')))),
-    e(Text,{color:'gray'},'────────── Activity ──────────'),
-    ...messages.slice(-Math.max(3,Math.min(10,(stdout.rows||30)-18))).map((x,i)=>e(Text,{key:i,wrap:'truncate-end'},x))),
-   e(Box,{borderStyle:'round',borderColor:'cyan',paddingX:1},
-    e(Text,{color:'green'},'› '),e(Text,null,command||'Type /help or /scan ...')),
-   e(Text,{color:'gray'},'/scan   /accounts   /security   /review   /help   /quit'),
-   e(Text,{color:'yellow'},'Google login sessions and 2FA cannot be verified by Gmail API.'));
+    e(Text,{color:running?'yellow':'green',wrap:'truncate-end'},step)),
+   e(Box,{borderStyle:'round',borderColor:'gray',paddingX:1,flexDirection:'column',height:contentHeight,overflowY:'hidden',flexShrink:0},
+    e(Text,{bold:true,color:'cyan'},'RESULTS · '+(running?'SCANNING':'READY')+'   '+(maxScroll?('↑↓ scroll '+(offset+1)+'–'+Math.min(entries.length,offset+available)+'/'+entries.length):'')),
+    ...visible.items.map((item,i)=>e(Text,{key:offset+i,color:item.color,wrap:'truncate-end'},item.text))),
+   e(Box,{flexGrow:1,minHeight:0}),
+   e(Box,{borderStyle:'round',borderColor:'cyan',paddingX:1,flexShrink:0},
+    e(Text,{color:'green'},'› '),e(Text,{wrap:'truncate-end'},command||'Type /help or /scan ...')),
+   e(Text,{color:'gray',wrap:'truncate-end'},'/scan  /accounts  /security  /review  /help  /quit  ·  ↑↓/PgUp/PgDn scroll'),
+   e(Text,{color:'yellow',wrap:'truncate-end'},'2FA, login sessions and recovery options: NOT VERIFIED (Google review required)'));
+
  }
- const instance=render(e(App));
- await instance.waitUntilExit();
+ const alt=process.stdout.isTTY && process.env.TERM!=='dumb';
+ if(alt)process.stdout.write('\x1b[?1049h\x1b[H');
+ try {
+  const instance=render(e(App),{exitOnCtrlC:true});
+  await instance.waitUntilExit();
+ } finally {
+  if(alt)process.stdout.write('\x1b[?1049l');
+ }
 }

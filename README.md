@@ -169,3 +169,7 @@ Launching Gmail Doctor now shows three workflow stages: (1) connected accounts, 
 ## Command dashboard (v0.8)
 
 Run `gmail-doctor` to open a terminal dashboard with a bordered status header, recent scan results, and a command input box at the bottom. It automatically scans connected accounts on launch without modifying Gmail settings. Supported commands: `/scan`, `/accounts`, `/security`, `/review`, `/help`, `/quit`. `/review` gives the explicit legacy repair command; it never deletes a filter directly. `gmail-doctor scan --all` and `--json` remain available for noninteractive automation. Google login sessions and two-factor authentication status are not accessible through Gmail API and remain unverified.
+
+## Fixed-screen terminal interface (v0.8.2)
+
+The interactive dashboard runs in a terminal alternate screen so normal terminal scrollback does not move the command prompt. The results window is independently paginated using Up/Down and PageUp/PageDown when the command input is empty, while the bottom input stays visible. Exiting restores the original terminal screen. Mouse-wheel scrolling inside the results pane is not yet supported. The noninteractive `scan --all` and `--json` commands remain unchanged.
