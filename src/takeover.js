@@ -12,6 +12,7 @@ export function summary(review) {
  const reviewed=Object.values(review).filter(x=>x==='reviewed').length;
  return {flagged,reviewed,notChecked:steps.length-flagged-reviewed};
 }
+import { wrapText } from './format.js';
 export function renderReview(review) {
  const c=summary(review);
  return ['ACCOUNT TAKEOVER CHECK — GUIDED REVIEW',

@@ -5,6 +5,7 @@ import { logo, layout } from './theme.js';
 import { steps, renderReview } from './takeover.js';
 import { spawn } from 'node:child_process';
 import { progress } from './progress.js';
+import { wrapText, terminalWidth } from './format.js';
 
 const line = '─'.repeat(54);
 export function dashboard(rows=[]) {
@@ -40,13 +41,13 @@ export async function launchTui({getAccounts, addAccount, scanAccount, saveBacku
     const account=await chooseAccount();
     if(!account) {console.log('Add an account first.');return;}
     const review={};
-    console.log('Account: '+account+' — Google security review is manual. Gmail Doctor cannot certify account safety.');
+    console.log(wrapText('Account: '+account+' — Manual Google security review. Gmail Doctor cannot certify account safety.',terminalWidth()));
     for(const step of steps) {
-      console.log('\n'+step.title+'\n'+step.help+'\n'+step.url);
+      console.log('\n'+step.title+'\n'+wrapText(step.help,terminalWidth())+'\n'+step.url);
       const action=await select({message:'What would you like to do?',choices:[
         {name:'Open official Google page',value:'open'},
-        {name:step.id==='twoStep'?'Confirmed 2-Step Verification is enabled':'Mark as reviewed (no suspicious activity noticed)',value:'reviewed'},
-        {name:step.id==='twoStep'?'2-Step Verification is OFF / I need help':'Report suspicious activity',value:'suspicious'},
+        {name:step.id==='twoStep'?'2FA confirmed ON':'Reviewed — nothing unusual',value:'reviewed'},
+        {name:step.id==='twoStep'?'2FA is OFF / need help':'Suspicious activity found',value:'suspicious'},
         {name:'Skip (not checked)',value:'skip'},
         {name:'Finish review',value:'finish'}
       ]});
@@ -56,15 +57,15 @@ export async function launchTui({getAccounts, addAccount, scanAccount, saveBacku
         const child=spawn(opener,[step.url],{stdio:'ignore'});
         child.on('error',()=>console.log('Open manually: '+step.url));
         const verdict=await select({message:'After reviewing Google, record your observation',choices:[
-          {name:step.id==='twoStep'?'I checked Google and 2-Step Verification is ON':'Reviewed; no suspicious activity noticed',value:'reviewed'},
-          {name:step.id==='twoStep'?'2-Step Verification is OFF / setup not complete':'Suspicious activity noticed',value:'suspicious'},
+          {name:step.id==='twoStep'?'2FA is ON':'Reviewed — nothing unusual',value:'reviewed'},
+          {name:step.id==='twoStep'?'2FA OFF / setup incomplete':'Suspicious activity found',value:'suspicious'},
           {name:'Not checked',value:'skip'}
         ]});
         if(verdict!=='skip')review[step.id]=verdict;
       } else if(action!=='skip')review[step.id]=action;
     }
-    console.log('\n'+renderReview(review));
-    if(review.twoStep!=='reviewed') console.log('ACTION: Verify and enable 2-Step Verification at https://myaccount.google.com/signinoptions/two-step-verification');
+    console.log('\n'+wrapText(renderReview(review),terminalWidth()));
+    if(review.twoStep!=='reviewed') console.log('ACTION: Review 2FA at Google:\n  https://myaccount.google.com/signinoptions/two-step-verification');
     console.log('No Google account security settings were changed by Gmail Doctor.');
   };
   const review=async()=>{
@@ -119,11 +120,11 @@ export async function launchTui({getAccounts, addAccount, scanAccount, saveBacku
       catch(e){console.log('Scan incomplete for '+email+': '+e.message);results.set(email,{error:e.message});}
     }
     console.log(progress('manual',total,total));
-    console.log('Automatic Gmail checks are complete. Google Account security requires owner review.');
-    console.log('2FA, login sessions, recovery details, Family Link and OAuth app permissions: NOT VERIFIED.');
-    console.log('Google account security checkup: https://myaccount.google.com/security-checkup');
-    console.log('2-Step Verification: https://myaccount.google.com/signinoptions/two-step-verification');
-    console.log('Review the official Google pages using the correct account for each session.');
+    console.log(wrapText('Automatic Gmail checks complete. Account-level security requires your review on Google.',terminalWidth()));
+    console.log(wrapText('NOT VERIFIED: 2FA, sessions, recovery methods, Family Link, third-party apps.',terminalWidth()));
+    console.log('Google Security Checkup:\n  https://myaccount.google.com/security-checkup');
+    console.log('Two-Step Verification:\n  https://myaccount.google.com/signinoptions/two-step-verification');
+    console.log(wrapText('On each Google page, select the account you intend to review.',terminalWidth()));
     console.log(progress('done',total,total));
     console.log('No Gmail settings were changed.');
   };
@@ -133,7 +134,7 @@ export async function launchTui({getAccounts, addAccount, scanAccount, saveBacku
     const list=await getAccounts();
     console.log('\n'+dashboard(list.map(email=>({email,...(results.get(email)||{})}))));
     const choice=await select({message:'Select action',choices:[
-      {name:'Account Takeover Check — guided Google security review',value:'takeover'},
+      {name:'Review Google account security',value:'takeover'},
       {name:'Scan all accounts',value:'scan'},
       {name:'Review findings / repair selected filters',value:'review'},
       {name:'Add Google account',value:'add'},
