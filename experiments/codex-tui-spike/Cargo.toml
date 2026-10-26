@@ -1,0 +1,8 @@
+[package]
+name = "gmail-doctor-tui-spike"
+version = "0.1.0"
+edition = "2021"
+publish = false
+[dependencies]
+crossterm = "0.29"
+ratatui = "0.29"
