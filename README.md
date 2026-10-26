@@ -1,54 +1,80 @@
 <div align="center">
 
-<img src="assets/readme-hero.svg" alt="Gmail Doctor — Audit Gmail settings. Keep your inbox yours." width="100%" />
+<img src="assets/readme-hero.svg" alt="Gmail Doctor — local Gmail settings checks and account security guidance" width="100%" />
 
 # Gmail Doctor
 
-**Check Google Account security. Audit Gmail settings. Fix what you can.**
+**Know what to do when your Gmail account is at risk.**
 
 [![Release](https://img.shields.io/github/v/release/hkalbertkim/gmail-doctor)](https://github.com/hkalbertkim/gmail-doctor/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![Status](https://img.shields.io/badge/status-developer%20preview-orange)
 
-A local-first, open-source terminal tool for reviewing Gmail forwarding rules, potentially risky filters, and settings across multiple Google accounts.
+**Triage → Official guidance → Optional Gmail settings audit**
 
-[Quick start](#quick-start) · [Connect Gmail](#connect-your-google-account) · [Safety](#security-and-limitations) · [Privacy](docs/PRIVACY.md) · [Terms](docs/TERMS.md)
+[Start here](#start-here--quick-triage) · [Prevent lockout](#prevent-lockout-before-it-happens) · [Run the CLI](#run-gmail-doctor) · [What it can do](#what-gmail-doctor-can-and-cannot-do) · [Privacy](docs/PRIVACY.md)
 
 </div>
 
-> **Developer Preview.** Google OAuth verification is pending. Connecting your own account currently requires a Google Cloud **Desktop OAuth client** and approved test access. No public one-click sign-in yet.
+> **If you're locked out:** Gmail Doctor **cannot bypass Google sign-in, 2-Step Verification, or account recovery**. Start with [Google's official Account Recovery](https://accounts.google.com/signin/recovery). Never pay someone claiming they can recover your account by asking for passwords or verification codes.
 
-## Account Takeover Check — start here
+## Start here — quick triage
 
-**Inspired by real Gmail account-takeover reports.** People have reported losing access after an attacker changed sign-in devices, recovery details, or Family Link supervision. Read the original discussions and learn what we can and cannot address in [Real Reddit user reports](docs/REDDIT_USER_REPORTS.md).
+**First question: Can you still sign in to your Google Account?**
 
-Run `gmail-doctor` (or `gmail-doctor takeover-check`): connected accounts are **automatically scanned first**, followed by a single consolidated checklist of Google security items that cannot be checked through Gmail API. The tool guides you through:
-- **Two-Step Verification (2FA) first:** Open Google's official settings, check whether it is on, and enable it there if needed. Gmail Doctor **cannot read or toggle the 2FA setting itself**.
-- Review recent security events, unfamiliar signed-in devices, recovery options, and connected apps through Google.
-- Record what you personally reviewed. Unchecked items are **not** shown as safe.
-- If locked out, use [Google Account Recovery](https://accounts.google.com/signin/recovery).
+| Your situation | Priority | Do this first |
+| --- | --- | --- |
+| I cannot sign in; my password or recovery details may have changed | **URGENT** | [Google Account Recovery](https://accounts.google.com/signin/recovery), preferably on a familiar device and network |
+| I know my password but lost my 2FA phone or security key | **URGENT** | Choose **Try another way**. Check saved backup codes, another signed-in device, registered passkeys or security keys; otherwise use [official recovery](https://accounts.google.com/signin/recovery) |
+| I can sign in but see unfamiliar devices or security alerts | **URGENT** | On a trusted device, run [Google Security Checkup](https://myaccount.google.com/security-checkup); review events, signed-in devices and recovery methods |
+| I can sign in but my Gmail filters or forwarding look strange | **REVIEW** | Secure the Google account first, then [scan Gmail settings](#run-gmail-doctor) and inspect suspicious rules |
+| Nothing is wrong yet; I want to avoid losing access | **PREVENT** | Complete [the lockout-prevention checklist](#prevent-lockout-before-it-happens) |
 
-This is a **manual, guided account security review**, not automated account takeover detection or recovery. Never enter passwords, passkeys or backup codes into Gmail Doctor.
+**Triage describes what to do next, not the probability of recovery.** A Google Account may still be recoverable even if an attacker changed 2FA or recovery information. Outcomes depend on Google's identity verification; no third-party CLI can guarantee them.
 
-## What it does
+### Decision guide
 
-| Capability | Supported today |
-| --- | --- |
-| Guided Account Takeover Check, including 2FA setup links | Yes, **manual Google review** |
-| Scan multiple connected Gmail accounts | Yes |
-| Identify mail-forwarding filters and filters that trash or hide messages | Yes |
-| Review sender aliases, POP/IMAP, and configured forwarding addresses | Yes |
-| Keyboard-driven interactive terminal dashboard | Yes |
-| Delete **selected** Gmail filters after explicit approval | Yes |
-| Save a local settings backup before deletion | Yes |
-| Restore filters automatically from backup | **Not yet** |
-| Detect stolen logins, unknown sessions, Family Link or compromised recovery info | **No** |
+```mermaid
+flowchart TD
+  A["Can you still sign in?"] -->|No| B["Use Google's official Account Recovery"]
+  B --> C["Try familiar device and available backup methods"]
+  A -->|Yes| D{"Unfamiliar activity?"}
+  D -->|Yes| E["Security Checkup: events, devices, password, recovery"]
+  D -->|No| F["Review recovery methods and 2FA backups"]
+  E --> G["Optional: Gmail Doctor settings scan"]
+  F --> G
+  G --> H["Inspect filters and forwarding; review before repair"]
+```
 
-**A warning is not proof of hacking.** Legitimate forwarding rules can be flagged. Confirm who created a rule before removing it. Gmail Doctor cannot recover a locked-out Google account.
+### What if an attacker already controls 2FA?
 
-## Quick start
+**Don't assume recovery is impossible.** Google documents alternative recovery factors including previously saved backup codes, other signed-in devices, backup security keys and passkeys. If these are unavailable, use the [official recovery process](https://accounts.google.com/signin/recovery). Google may need additional time to verify ownership, and success is not guaranteed.
 
-Node.js 20+ is required. The current credential store uses **macOS Keychain**.
+Official references:
+- [Recover a Google Account](https://support.google.com/accounts/answer/7682439)
+- [Secure a hacked account](https://support.google.com/accounts/answer/6294825)
+- [Fix common 2-Step Verification problems](https://support.google.com/accounts/answer/185834)
+
+## Prevent lockout before it happens
+
+Use this checklist **while you still control your account**, ideally on a trusted device:
+
+- [ ] Use a unique, strong password or suitable passkey and protect the devices that store it.
+- [ ] Enable [2-Step Verification](https://myaccount.google.com/signinoptions/two-step-verification) if appropriate.
+- [ ] **Set up more than one independent sign-in/recovery option** so losing a phone does not leave you with no alternative.
+- [ ] Download and store [Google backup codes](https://support.google.com/accounts/answer/1187538) securely **outside the account**. Never share or paste them into this project.
+- [ ] Verify your recovery email and phone in [Google Account Security](https://myaccount.google.com/security).
+- [ ] Review signed-in devices, recent security events and connected third-party apps in [Security Checkup](https://myaccount.google.com/security-checkup).
+- [ ] Check Gmail's forwarding and filters; use a settings audit if you suspect changes.
+- [ ] If you suspect malware or session theft, secure the device as well as the account; changing passwords on an infected device may be insufficient.
+
+**Important:** This checklist is guidance, not an automated security certification. Google security pages, not the Gmail API, control login sessions, 2FA and recovery options.
+
+## Run Gmail Doctor
+
+Gmail Doctor is a local-first CLI that audits available Gmail settings across connected accounts. **The audit can help while you still have access; it cannot recover a locked account.**
+
+Requires **Node.js 20+ and macOS Keychain** for the current local token store.
 
 ```bash
 git clone https://github.com/hkalbertkim/gmail-doctor.git
@@ -56,136 +82,92 @@ cd gmail-doctor
 npm ci
 npm link
 
-# Run without connecting to Gmail
+# Read the emergency guide, without signing in:
+gmail-doctor triage
+
+# Try a safe synthetic Gmail settings scan:
 gmail-doctor scan --demo
 
-# Open the interactive terminal dashboard
+# Start the current interactive dashboard:
 gmail-doctor
 ```
 
-The demo uses fictional settings; it never logs into Google or modifies an account.
+### Connect an account (developer preview)
 
-## Connect your Google account
+**Public Google OAuth verification is pending.** There is currently **no one-click public sign-in**. To use Gmail Doctor with a real account you need your own Google Cloud Desktop OAuth client, Gmail API enabled and approved test-user access.
 
-Until Google approves the public OAuth application:
-
-1. Create/select a project in [Google Cloud Console](https://console.cloud.google.com/).
-2. Enable the **Gmail API** and configure the OAuth consent screen (External / Testing for your test accounts).
-3. Register your email as an approved **Test user**.
-4. Create a **Desktop app** OAuth client and download its JSON **outside** this repository.
-5. Configure the CLI once:
+1. Open [Google Cloud Console](https://console.cloud.google.com/) and create or choose a project.
+2. Enable the **Gmail API**; configure OAuth consent and register yourself as a test user if in Testing mode.
+3. Create a **Desktop app** OAuth client. Save its downloaded JSON outside this repository.
+4. In your own terminal, run:
 
 ```bash
 gmail-doctor setup --client ~/Downloads/your-desktop-oauth.json
 gmail-doctor account add --account you@gmail.com
-gmail-doctor account list
 gmail-doctor scan --all
 ```
 
-To add more accounts, register them as permitted OAuth test users, then repeat `gmail-doctor account add --account other@example.com`. Google opens the browser for consent; **never enter your Google password in Gmail Doctor**.
+Google handles sign-in and consent. **Do not enter your Google password, backup codes or recovery codes into Gmail Doctor.**
 
-## Interactive scanning and repair
-
-Run `gmail-doctor` for an interactive dashboard. Arrow keys navigate, Space selects checkboxes, Enter advances.
-
-The repair flow is deliberately explicit:
-
-1. Choose an account and review the findings.
-2. Select only filters **you intend to delete**.
-3. Inspect the repair plan; type `REPAIR` to confirm.
-4. The CLI rechecks the selected filters, saves a local settings backup, applies authorized deletions, and rescans.
-
-You can inspect a repair plan without making changes:
-
-```bash
-gmail-doctor repair --account you@gmail.com --dry-run
-```
-
-**Warning:** Deleting a filter can disrupt expected workflows. Gmail Doctor currently **cannot automatically restore a deleted filter**. A settings backup does not mean rollback is available. Do not select rules you recognize and need.
-
-## CLI reference
+### Commands
 
 ```text
-gmail-doctor                                    Interactive dashboard
-gmail-doctor scan --demo                        Safe sample scan
-gmail-doctor account add --account EMAIL        Connect another account
-gmail-doctor account list                       List registered accounts
-gmail-doctor scan --all                         Scan all connected accounts
-gmail-doctor scan --account EMAIL               Scan one account
-gmail-doctor scan --account EMAIL --json        Structured output
-gmail-doctor repair --account EMAIL --dry-run   Review, no writes
-gmail-doctor repair --account EMAIL             Explicitly approve changes
-gmail-doctor logout --account EMAIL             Remove local token
+gmail-doctor                          Current interactive menu
+gmail-doctor triage                   Immediate emergency/prevention guide
+gmail-doctor scan --demo              Offline fictional demo
+gmail-doctor scan --all               Scan connected Gmail accounts
+gmail-doctor scan --account EMAIL     Scan a specific account
+gmail-doctor scan --account EMAIL --json  Machine-readable scan
+gmail-doctor account add --account EMAIL  Connect an account
+gmail-doctor account list             List accounts
+gmail-doctor repair --account EMAIL --dry-run  Preview possible changes
+gmail-doctor repair --account EMAIL   Interactive, explicitly approved deletion
+gmail-doctor baseline save --account EMAIL  Save reviewed trusted filter baseline
+gmail-doctor baseline check --account EMAIL  Check filter configuration drift
+gmail-doctor logout --account EMAIL   Remove local token
 ```
 
-## Security and limitations
+## What Gmail Doctor can and cannot do
 
-- Reads Gmail **settings**, not message bodies or attachments.
-- Uses Google's OAuth sign-in; never collects Gmail passwords.
-- Stores refresh tokens in macOS Keychain; account IDs and settings backups remain on the local machine.
-- Sends no mailbox content to a Gmail Doctor backend; network requests to Google are necessary for OAuth and Gmail API.
-- OAuth scope `gmail.settings.basic` can **modify** Gmail settings; it is **not a read-only scope**.
-- Does not scan sign-in sessions, stolen cookies, recovery options, Google Family Link or third-party OAuth grants.
-- A clean scan of available settings **does not prove the account is safe**.
-- Some setting changes require manual action in [Gmail Settings](https://mail.google.com/mail/u/0/#settings/general) or [Google Security Checkup](https://myaccount.google.com/security-checkup).
+| Capability | Current status |
+| --- | --- |
+| Explain official recovery and prevention pathways | **Yes — guidance** |
+| Audit Gmail filters, forwarding rules, aliases and available settings | **Yes — with account authorization** |
+| Audit multiple connected accounts | **Yes** |
+| Detect changes against a previously reviewed filter baseline | **Yes** |
+| Preview filter deletions and save a local settings backup | **Yes** |
+| Delete **individually selected** filters | **Yes — only after typing `REPAIR`** |
+| Automatically undo deleted filters | **No** |
+| Read Google login sessions, 2FA or recovery configuration through Gmail API | **No** |
+| Recover locked accounts, bypass 2FA or prove an account is safe | **No** |
 
-Security concerns: open a [GitHub issue](https://github.com/hkalbertkim/gmail-doctor/issues) without posting email addresses, OAuth tokens, or personal mailbox data.
+**Scans are not proof of compromise.** Legitimate rules may look unusual. Conversely, a clean Gmail settings scan does not rule out account takeover.
 
-## Privacy, terms and contributing
+### Safety of repair
+
+The tool only deletes explicitly selected Gmail filters after review and confirmation. It rescans before deleting and saves a local settings backup. **Backups do not currently provide automatic rollback.** Do not delete an unfamiliar rule until you understand its purpose.
+
+The requested Gmail OAuth scope is `gmail.settings.basic`, which can change settings; it is **not read-only**. Normal scans do not intentionally change Gmail settings.
+
+## Development and terminal UX
+
+The current default interactive experience is a stable menu-based CLI. Work on a Codex-inspired Rust terminal UI is isolated under [experiments/codex-tui-spike](experiments/codex-tui-spike) and is **not yet production-ready**. We will not claim Codex visual or behavioral parity until real macOS Terminal testing succeeds. Scanning and repair logic are preserved during this work.
+
+For technical context see [TUI acceptance gates](docs/CODEX_TUI_SPIKE.md) and [real user problem reports](docs/REDDIT_USER_REPORTS.md).
+
+## Privacy and project information
+
+- Gmail message bodies and attachments are **not read**; this is a settings auditor.
+- Sign-in occurs through Google OAuth, not through Gmail Doctor's own password form.
+- OAuth refresh tokens are stored locally in **macOS Keychain**. Local configuration, account identifiers, baselines and backups remain on the device.
+- No Gmail Doctor-hosted mailbox backend is required, though Google's OAuth and Gmail API endpoints are contacted.
+- Do not post personal account data, tokens or backup codes in [public issues](https://github.com/hkalbertkim/gmail-doctor/issues).
 
 [Privacy Policy](docs/PRIVACY.md) · [Terms of Use](docs/TERMS.md) · [MIT License](LICENSE)
 
-Run the checks before contributing:
-
 ```bash
-npm ci
 npm test
 npm run check
 ```
 
-This project is **independent**, and is not affiliated with, sponsored by, or endorsed by Google. Gmail and the Gmail logo are trademarks of Google LLC.
-
-## Trusted filter baseline (experimental)
-
-Inspired by [gmailctl](https://github.com/mbrt/gmailctl)'s declarative filter comparison workflow. Only record a trusted baseline **after manually reviewing every existing Gmail rule**. The scanner will continue to flag unusual rule types; the baseline separately highlights changes to your accepted configuration.
-
-```bash
-gmail-doctor baseline save --account you@gmail.com
-gmail-doctor baseline check --account you@gmail.com
-```
-
-The comparison includes filter criteria and actions, excludes Gmail's opaque filter ID, and stores local SHA-256 fingerprints in `~/.gmail-doctor/baselines`. A change is reported as added/removed fingerprints; it is not proof of malicious behavior. Saving again replaces the previous trusted baseline; retain a copy if you need history. No Gmail changes are made. The check exits with status 2 when a change is detected.
-
-Implementation references: [gmailctl](https://github.com/mbrt/gmailctl) (MIT) and [GAMADV-XTD3 filter documentation](https://github.com/taers232c/GAMADV-XTD3/wiki/Users-Gmail-Filters). No third-party source code was copied.
-
-## v0.7 automatic-first dashboard
-
-Running `gmail-doctor` immediately scans every connected account for Gmail settings risks and compares any locally stored trusted baseline. After the scan it displays one summary of additional checks that **must be reviewed directly with Google** (2-Step Verification, security events, devices, recovery settings and third-party access). It never silently assumes those unverified categories are safe. It performs no automatic repair. The interactive menu remains available after the initial scan.
-
-## Guided progress (v0.7.1)
-
-Launching Gmail Doctor now shows three workflow stages: (1) connected accounts, (2) automatic Gmail settings scan and trusted baseline comparison for each account in order, and (3) Google security review. The current account and scan number are displayed. Google Account login sessions, 2FA status, recovery methods and connected apps cannot be inspected via Gmail API and remain NOT VERIFIED until the owner reviews official Google security pages. Scanning never changes Gmail settings.
-
-## Command dashboard (v0.8)
-
-Run `gmail-doctor` to open a terminal dashboard with a bordered status header, recent scan results, and a command input box at the bottom. It automatically scans connected accounts on launch without modifying Gmail settings. Supported commands: `/scan`, `/accounts`, `/security`, `/review`, `/help`, `/quit`. `/review` gives the explicit legacy repair command; it never deletes a filter directly. `gmail-doctor scan --all` and `--json` remain available for noninteractive automation. Google login sessions and two-factor authentication status are not accessible through Gmail API and remain unverified.
-
-## Fixed-screen terminal interface (v0.8.2)
-
-The interactive dashboard runs in a terminal alternate screen so normal terminal scrollback does not move the command prompt. The results window is independently paginated using Up/Down and PageUp/PageDown when the command input is empty, while the bottom input stays visible. Exiting restores the original terminal screen. Mouse-wheel scrolling inside the results pane is not yet supported. The noninteractive `scan --all` and `--json` commands remain unchanged.
-
-### Terminal mouse-wheel support (v0.8.3)
-
-On terminals supporting xterm SGR mouse reporting, Gmail Doctor captures wheel-up/down and scrolls the RESULTS viewport rather than terminal scrollback. The input box remains on screen. Arrow keys and PageUp/PageDown also work. Mouse reporting is disabled on exit. Terminal applications can have different scrollback settings; if your terminal still scrolls its history, try the keyboard controls and report the terminal name/version.
-
-## Inline terminal mode (v0.9)
-
-The interactive CLI now uses terminal scrollback (Ink Static) rather than taking over the alternate screen. Previous output remains in the terminal history and new results append at the bottom above a compact live command composer. The commands `/security` and `/2fa` open the corresponding **official Google pages** in your default browser. Google account security checks remain manual and NOT VERIFIED until you complete them with Google. No automatic filter repair was added.
-
-## Clean launch (v0.9.1)
-
-On an interactive terminal, Gmail Doctor clears the visible display and moves the cursor to the top before rendering its inline transcript and command composer. This does not use Alternate Screen, so new output can still enter normal terminal scrollback. Existing scrollback may remain available depending on terminal settings. Use `scan --all` for scripting.
-
-## UI stability note (v0.9.3)
-
-The v0.9 inline UI has not matched the expected terminal scrollback and bottom-composer behavior on macOS Terminal. The default `gmail-doctor` command therefore uses the previously tested menu-based interactive UI while the renderer is redesigned. `gmail-doctor ui-experimental` exposes the unfinished inline UI for development only. The scan and filter repair behavior is unchanged. This is an explicit rollback of the unverified interface, not a claim of feature parity with Codex or Claude Code.
+This independent project is not affiliated with, sponsored by, or endorsed by Google. Gmail is a trademark of Google LLC.

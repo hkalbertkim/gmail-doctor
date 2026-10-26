@@ -1,6 +1,6 @@
 {
   "name": "gmail-doctor-cli",
-  "version": "0.9.3",
+  "version": "0.9.4",
   "description": "Local-first Gmail settings auditor and consent-based repair CLI",
   "type": "module",
   "bin": {
@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "node --test",
-    "check": "node --check bin/gmail-doctor.js && node --check src/core.js && node --check src/presentation.js && node --check src/theme.js && node --check src/tui.js && node --check src/baseline.js && node --check src/takeover.js && node --check src/progress.js && node --check src/format.js && node --check src/command-ui.js"
+    "check": "node --check bin/gmail-doctor.js && node --check src/core.js && node --check src/presentation.js && node --check src/theme.js && node --check src/tui.js && node --check src/baseline.js && node --check src/takeover.js && node --check src/progress.js && node --check src/format.js && node --check src/command-ui.js && node --check src/triage.js"
   },
   "dependencies": {
     "@inquirer/prompts": "^7.10.1",
