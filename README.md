@@ -84,3 +84,7 @@ The one-time setup command stores the OAuth client JSON locally at ~/.gmail-doct
 ## Terminal display
 
 Interactive TTY output uses ANSI colors and an ASCII wordmark. Non-TTY or redirected output is plain text. Use `--no-color` or `NO_COLOR=1` to suppress color. `--json` remains machine-readable.
+
+## Interactive dashboard (v0.4)
+
+Run `gmail-doctor` or `gmail-doctor ui` in a real terminal. Choose Scan all accounts, Review findings / repair selected filters, Add Google account or Exit. Arrow keys navigate, Space selects checkbox items, Enter confirms. Filtering rules are only removed after selecting them, typing the exact word `REPAIR`, a fresh preflight scan, and a local backup. Changes to rules between review and approval abort repair. The existing `scan --all` and `--json` automation interfaces remain available.

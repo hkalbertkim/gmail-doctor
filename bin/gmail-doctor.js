@@ -10,13 +10,14 @@ import { stdin, stdout } from 'node:process';
 import { assess, readSettings, applyAction } from '../src/core.js';
 import { renderReport, renderSummary } from '../src/presentation.js';
 import { logo, layout } from '../src/theme.js';
+import { launchTui } from '../src/tui.js';
 
 const scope = 'openid email https://www.googleapis.com/auth/gmail.settings.basic';
 const appDir = join(homedir(), '.gmail-doctor');
 const oauthConfigPath = join(appDir, 'oauth-client.json');
 const keychainName = 'gmail-doctor-oauth-v1';
 const args = process.argv.slice(2);
-const command = args[0] || 'help';
+const command = args[0] || 'ui';
 const selectedAccount = args.includes('--account') ? args[args.indexOf('--account') + 1]?.toLowerCase() : null;
 const demo = args.includes('--demo');
 const pretty = !args.includes('--no-color') && !args.includes('--json') && process.stdout.isTTY && !process.env.NO_COLOR && process.env.TERM!=='dumb';
@@ -30,6 +31,8 @@ const fixture = {
 function help() {
   console.log(`Gmail Doctor v0.2 — Gmail settings audit and repair
 Usage:
+  gmail-doctor                    # Interactive dashboard
+  gmail-doctor ui                 # Interactive dashboard
   gmail-doctor scan [--demo] [--json] [--no-color]
   gmail-doctor repair [--demo] [--dry-run]
   gmail-doctor setup --client /path/to/desktop-client.json
@@ -195,6 +198,19 @@ async function main() {
     return;
   }
   if (command==='help'||args.includes('--help')) { help(); return; }
+  if (command==='ui') {
+    return launchTui({
+      getAccounts: accounts,
+      addAccount,
+      scanAccount: async email=>{
+        const api=gmailApi(await accessToken(email));
+        const {settings,errors}=await readSettings(api);
+        return {settings,errors,...assess(settings),warnings:assess(settings).findings.filter(x=>x.severity==='warning').length,unchecked:errors.length};
+      },
+      saveBackup,
+      provider: async email=>gmailApi(await accessToken(email))
+    });
+  }
   if (command === 'account') {
     if (args[1] === 'add') return addAccount();
     if (args[1] === 'list') { const list=await accounts(); console.log(list.length?list.join('\n'):'No accounts registered. Run gmail-doctor account add.'); return; }
