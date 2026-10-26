@@ -4,7 +4,7 @@ export function assess(settings) {
   const forward = settings.autoForwarding || {};
   if (forward.enabled) {
     findings.push({ severity: 'warning', id: 'automatic-forwarding', detail: 'Automatic forwarding enabled to ' + (forward.emailAddress || '(unknown)') });
-    actions.push({ kind: 'disable-forwarding', id: 'automatic-forwarding', label: 'Disable automatic forwarding' });
+    // Consumer OAuth cannot update automatic forwarding; Google requires Workspace domain-wide delegated service accounts.
   }
   for (const filter of (settings.filters || [])) {
     const a = filter.action || {};
@@ -50,9 +50,6 @@ export async function readSettings(api) {
   return { settings: result, errors };
 }
 export async function applyAction(api, action) {
-  if (action.kind === 'disable-forwarding') {
-    return api('PUT', 'settings/autoForwarding', { enabled: false });
-  }
   if (action.kind === 'delete-filter') {
     return api('DELETE', 'settings/filters/' + encodeURIComponent(action.id));
   }

@@ -6,7 +6,7 @@ Title: Show HN: Gmail Doctor — inspect suspicious forwarding and filter rules 
 Body:
 I built Gmail Doctor, an open-source local-first CLI for detecting risky Gmail forwarding and filter settings, and repairing selected settings with explicit confirmation.
 
-The initial version reads Gmail settings through Google's API. It flags auto-forwarding and filters that silently delete or forward mail. It can disable forwarding and delete a user-approved filter, keeping a local settings backup. It does not read message contents.
+The initial version reads Gmail settings through Google's API. It flags auto-forwarding and filters that silently delete or forward mail. It flags forwarding for manual repair and can delete a user-approved filter, keeping a local settings backup. It does not read message contents.
 
 It cannot detect stolen sessions, Family Link takeovers, or recover an account after lockout. Google OAuth setup currently requires testers to configure their own Desktop OAuth client; I am validating the install flow before claiming consumer-ready onboarding.
 
@@ -27,7 +27,7 @@ I'm looking for feedback on missing high-value checks, confusing output, and whe
 ## LinkedIn
 Gmail account takeover stories are everywhere. But checking whether someone quietly changed your mail forwarding and filters is still tedious.
 
-I built Gmail Doctor: a local-first open-source CLI that audits those settings and offers explicit, user-approved repairs. No email bodies, no central server.
+I built Gmail Doctor: a local-first open-source CLI that audits those settings and offers explicit, user-approved filter repairs. No email bodies, no central server.
 
 It's an early developer release: OAuth setup is manual, and it cannot restore access to a locked-out account.
 

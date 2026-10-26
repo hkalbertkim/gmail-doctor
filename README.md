@@ -49,7 +49,9 @@ The browser opens Google's actual login page. The requested OAuth scope is `gmai
 
 ## Repairs
 
-Only two automated operations in v0.1: **disable automatic forwarding** and **delete an individually selected filter**. A local settings snapshot is created before any repairs, but automatic rollback is **not** implemented. Do not approve removal of filters you recognize. Repeat scan after repairs.
+Automatic forwarding must be disabled **manually** in Gmail Settings → Forwarding and POP/IMAP. Google's updateAutoForwarding API requires Workspace service-account domain-wide delegation and is not available to consumer desktop OAuth.
+
+Only one automated operation in v0.1: **delete an individually selected filter**. A local settings snapshot is created before any repairs, but automatic rollback is **not** implemented. Do not approve removal of filters you recognize. Repeat scan after repairs.
 
 **Not checked:** active device sessions, stolen cookies, password changes, recovery email/phone, Family Link, third-party OAuth apps. **Not supported:** reclaiming inaccessible Gmail accounts, automatic send-as alias deletion for consumer accounts, automatic OAuth grant revocation. Use [Google Security Checkup](https://myaccount.google.com/security-checkup) and [Google Account Recovery](https://accounts.google.com/signin/recovery).
 
