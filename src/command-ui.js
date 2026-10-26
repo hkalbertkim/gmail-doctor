@@ -15,7 +15,7 @@ export async function launchCommandUi({getAccounts,scanAccount,checkBaseline}) {
  function App(){
   const {exit}=useApp();
   const {stdout}=useStdout();
-  const width=Math.min(80,Math.max(42,(stdout.columns||80)-2));
+  const width=Math.max(42,(stdout.columns||80)-2);
   const [command,setCommand]=useState('');
   const commandRef=useRef('');
   const updateCommand=value=>{commandRef.current=value;setCommand(value);};
