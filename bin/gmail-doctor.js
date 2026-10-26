@@ -36,7 +36,7 @@ Usage:
   gmail-doctor scan [--demo] [--json] [--no-color]
   gmail-doctor repair [--demo] [--dry-run]
   gmail-doctor setup --client /path/to/desktop-client.json
-  gmail-doctor account add
+  gmail-doctor account add [--account email]
   gmail-doctor account list
   gmail-doctor scan --all
   gmail-doctor scan --account you@gmail.com
@@ -79,7 +79,7 @@ async function tokenRequest(form) {
   if (!res.ok) throw new Error('Google OAuth token request failed: ' + (data.error || res.status));
   return data;
 }
-async function browserLogin(client) {
+async function browserLogin(client, accountHint=null) {
   const verifier = randomBytes(48).toString('base64url');
   const challenge = createHash('sha256').update(verifier).digest('base64url');
   const state = randomBytes(20).toString('hex');
@@ -100,7 +100,7 @@ async function browserLogin(client) {
   await new Promise(r=>server.once('listening',r));
   const redirect_uri = 'http://127.0.0.1:' + server.address().port + '/callback';
   const url = new URL('https://accounts.google.com/o/oauth2/v2/auth');
-  for (const [k,v] of Object.entries({client_id:client.client_id,redirect_uri,response_type:'code',scope,state,code_challenge:challenge,code_challenge_method:'S256',access_type:'offline',prompt:'consent'})) url.searchParams.set(k,v);
+  for (const [k,v] of Object.entries({client_id:client.client_id,redirect_uri,response_type:'code',scope,state,code_challenge:challenge,code_challenge_method:'S256',access_type:'offline',prompt:accountHint?'select_account consent':'consent',...(accountHint?{login_hint:accountHint}:{})})) url.searchParams.set(k,v);
   console.log('Opening Google sign-in in your browser...');
   const opener = process.platform === 'darwin' ? 'open' : 'xdg-open';
   const child = spawn(opener,[url.toString()],{stdio:'ignore'});
@@ -138,8 +138,9 @@ async function identityFromToken(token, clientId) {
 }
 async function addAccount() {
   const c = await getClient();
-  const tokens = await browserLogin(c);
+  const tokens = await browserLogin(c, selectedAccount);
   const email = await identityFromToken(tokens.id_token,c.client_id);
+  if (selectedAccount && email !== selectedAccount) throw new Error('Google authenticated '+email+' instead of requested '+selectedAccount+'. No account added.');
   if (!tokens.refresh_token) throw new Error('Google did not issue an offline token; account not saved.');
   const key = c.client_id + ':' + email;
   keychain('write',key,tokens.refresh_token);
