@@ -165,3 +165,7 @@ Running `gmail-doctor` immediately scans every connected account for Gmail setti
 ## Guided progress (v0.7.1)
 
 Launching Gmail Doctor now shows three workflow stages: (1) connected accounts, (2) automatic Gmail settings scan and trusted baseline comparison for each account in order, and (3) Google security review. The current account and scan number are displayed. Google Account login sessions, 2FA status, recovery methods and connected apps cannot be inspected via Gmail API and remain NOT VERIFIED until the owner reviews official Google security pages. Scanning never changes Gmail settings.
+
+## Command dashboard (v0.8)
+
+Run `gmail-doctor` to open a terminal dashboard with a bordered status header, recent scan results, and a command input box at the bottom. It automatically scans connected accounts on launch without modifying Gmail settings. Supported commands: `/scan`, `/accounts`, `/security`, `/review`, `/help`, `/quit`. `/review` gives the explicit legacy repair command; it never deletes a filter directly. `gmail-doctor scan --all` and `--json` remain available for noninteractive automation. Google login sessions and two-factor authentication status are not accessible through Gmail API and remain unverified.

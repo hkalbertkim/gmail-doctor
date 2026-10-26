@@ -11,6 +11,7 @@ import { assess, readSettings, applyAction } from '../src/core.js';
 import { renderReport, renderSummary } from '../src/presentation.js';
 import { logo, layout } from '../src/theme.js';
 import { launchTui } from '../src/tui.js';
+import { launchCommandUi } from '../src/command-ui.js';
 import { renderReview } from '../src/takeover.js';
 import { captureBaseline, compareBaseline } from '../src/baseline.js';
 
@@ -31,7 +32,7 @@ const fixture = {
   forwardingAddresses: [{forwardingEmail:'unknown@example.net'}]
 };
 function help() {
-  console.log(`Gmail Doctor v0.2 — Gmail settings audit and repair
+  console.log(`Gmail Doctor v0.8 — Gmail settings audit and repair
 Usage:
   gmail-doctor                    # Interactive dashboard
   gmail-doctor ui                 # Interactive dashboard
@@ -204,6 +205,20 @@ async function main() {
     return;
   }
   if (command==='help'||args.includes('--help')) { help(); return; }
+  if (command==='ui') {
+    return launchCommandUi({
+      getAccounts:accounts,
+      scanAccount: async email=>{
+        const {settings,errors}=await readSettings(gmailApi(await accessToken(email)));
+        return {settings,errors,...assess(settings)};
+      },
+      checkBaseline: async(email,settings)=>{
+        try {
+          return compareBaseline(JSON.parse(await readFile(join(appDir,'baselines',encodeURIComponent(email)+'.json'),'utf8')),settings);
+        } catch(e) {if(e.code==='ENOENT') return null;throw e;}
+      }
+    });
+  }
   if (command==='ui' || command==='takeover-check') {
     return launchTui({
       getAccounts: accounts,
