@@ -38,15 +38,18 @@ export async function launchCommandUi({getAccounts,scanAccount,checkBaseline}) {
   const [step,setStep]=useState('Connecting accounts');
   const [accounts,setAccounts]=useState([]);
   const [rows,setRows]=useState([]);
-  const [messages,setMessages]=useState(['Starting read-only account scan...']);
+  const [messages,setMessages]=useState([]);
   const [scroll,setScroll]=useState(null);
-  const add=msg=>setMessages(old=>[...old,String(msg)].slice(-14));
+  const add=(text,color='white')=>setMessages(old=>[...old,{text:String(text),color}].slice(-100));
+  const section=(title)=>{add('');add('━━ '+title+' ━━','cyan');};
   async function scan(){
    setRunning(true);
+   section('GMAIL SCAN');
+   add('Starting read-only scan…','gray');
    try {
     const list=await getAccounts();
     setAccounts(list);
-    if(!list.length){setStep('No accounts configured');add('Use gmail-doctor account add to connect a Google account.');return;}
+    if(!list.length){setStep('No accounts configured');add('Use gmail-doctor account add to connect a Google account.','yellow');return;}
     const next=[];
     for(let i=0;i<list.length;i++){
      const email=list[i];
@@ -56,22 +59,24 @@ export async function launchCommandUi({getAccounts,scanAccount,checkBaseline}) {
       const baseline=await checkBaseline(email,data.settings);
       const item={email,warnings:data.findings.filter(x=>x.severity==='warning').length,unchecked:data.errors.length,baseline};
       next.push(item);
-      add(email+': '+item.warnings+' warning(s), '+item.unchecked+' incomplete; baseline '+(baseline?(baseline.changed?'changed':'unchanged'):'not set'));
+      add('✓ '+email,'green');
+      add('   '+item.warnings+' warning(s) · '+item.unchecked+' incomplete · baseline '+(baseline?(baseline.changed?'changed':'unchanged'):'not set'),item.warnings?'yellow':'gray');
      }catch(err){
       next.push({email,error:true,warnings:0});
-      add(email+': scan incomplete ('+err.message+')');
+      add('✗ '+email+': scan incomplete ('+err.message+')','red');
      }
      setRows([...next]);
     }
     setStep('Automated scan complete · Google account checks NOT VERIFIED');
-    add('2FA, sessions, recovery methods and app access require review on Google.');
+    add('✓ Gmail settings scan complete','green');
+    add('! Google account checks NOT VERIFIED: 2FA, sessions, recovery and apps.','yellow');
    } finally {setRunning(false);}
   }
   useEffect(()=>{scan();},[]);
   const entries=[
     ...rows.map(row=>({text:row.email+'  '+(row.error?'SCAN FAILED':row.warnings+' warning(s)'+(row.unchecked?' · INCOMPLETE':'')),color:row.error?'red':row.warnings?'yellow':'green'})),
     {text:'────────── Activity ──────────',color:'gray'},
-    ...messages.map(text=>({text,color:'white'}))
+    ...messages
   ];
   const available=contentHeight-3;
   const maxScroll=Math.max(0,entries.length-available);
@@ -96,16 +101,19 @@ export async function launchCommandUi({getAccounts,scanAccount,checkBaseline}) {
     if(running)return;
     if(cmd==='/quit'||cmd==='/exit'){exit();return;}
     if(cmd==='/scan'){scan();return;}
-    if(cmd==='/accounts'){add(accounts.length?accounts.join(' · '):'No accounts connected.');return;}
+    if(cmd==='/accounts'){section('CONNECTED ACCOUNTS');for(const name of accounts)add('• '+name,'cyan');if(!accounts.length)add('No accounts connected.','yellow');return;}
     if(cmd==='/security'){
-      add('NOT VERIFIED: 2FA, devices, recovery, app permissions.');
-      add('Google: https://myaccount.google.com/security-checkup');
-      add('2FA: https://myaccount.google.com/signinoptions/two-step-verification');
+      section('GOOGLE SECURITY REVIEW');
+      add('! NOT VERIFIED: 2FA, devices, recovery and app permissions.','yellow');
+      add('Google Security Checkup:','gray');
+      add('  https://myaccount.google.com/security-checkup','cyan');
+      add('Two-Step Verification:','gray');
+      add('  https://myaccount.google.com/signinoptions/two-step-verification','cyan');
       return;
     }
-    if(cmd==='/review'){add('To review and approve filter deletion, exit and run gmail-doctor repair --account EMAIL. No changes made.');return;}
-    if(cmd==='/help'){add('Commands: '+commandNames.join('  '));return;}
-    add('Unknown command. Type /help.');
+    if(cmd==='/review'){section('FILTER REVIEW');add('No changes made. To review removals run:','yellow');add('  gmail-doctor repair --account EMAIL','cyan');return;}
+    if(cmd==='/help'){section('COMMANDS');add('/scan · /accounts · /security · /review · /help · /quit','cyan');return;}
+    add('Unknown command. Type /help.','yellow');
     return;
    }
    if(k.backspace||k.delete){updateCommand(commandRef.current.slice(0,-1));return;}
@@ -124,7 +132,7 @@ export async function launchCommandUi({getAccounts,scanAccount,checkBaseline}) {
    e(Box,{flexGrow:1,minHeight:0}),
    e(Text,{color:'gray'},'─'.repeat(Math.max(1,width-1))),
    e(Box,{paddingX:1,flexShrink:0},
-    e(Text,{color:'green'},'› '),e(Text,{wrap:'truncate-end'},command||'Ask Gmail Doctor or type /help ...')),
+    e(Text,{color:'green'},'› '),e(Text,{wrap:'truncate-end'},command||'Type /help or /scan ...')),
    e(Text,{color:'gray'},'─'.repeat(Math.max(1,width-1))),
    e(Text,{color:'gray',wrap:'truncate-end'},'  /scan  /accounts  /security  /review  /help  /quit   ·   ↑↓ / wheel scroll'),
    e(Text,{color:'yellow',wrap:'truncate-end'},'  2FA, sessions, recovery: NOT VERIFIED · Review directly with Google'));
