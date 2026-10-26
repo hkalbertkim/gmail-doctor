@@ -131,3 +131,16 @@ npm run check
 ```
 
 This project is **independent**, and is not affiliated with, sponsored by, or endorsed by Google. Gmail and the Gmail logo are trademarks of Google LLC.
+
+## Trusted filter baseline (experimental)
+
+Inspired by [gmailctl](https://github.com/mbrt/gmailctl)'s declarative filter comparison workflow. Only record a trusted baseline **after manually reviewing every existing Gmail rule**. The scanner will continue to flag unusual rule types; the baseline separately highlights changes to your accepted configuration.
+
+```bash
+gmail-doctor baseline save --account you@gmail.com
+gmail-doctor baseline check --account you@gmail.com
+```
+
+The comparison includes filter criteria and actions, excludes Gmail's opaque filter ID, and stores local SHA-256 fingerprints in `~/.gmail-doctor/baselines`. A change is reported as added/removed fingerprints; it is not proof of malicious behavior. Saving again replaces the previous trusted baseline; retain a copy if you need history. No Gmail changes are made. The check exits with status 2 when a change is detected.
+
+Implementation references: [gmailctl](https://github.com/mbrt/gmailctl) (MIT) and [GAMADV-XTD3 filter documentation](https://github.com/taers232c/GAMADV-XTD3/wiki/Users-Gmail-Filters). No third-party source code was copied.

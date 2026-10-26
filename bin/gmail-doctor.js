@@ -11,6 +11,7 @@ import { assess, readSettings, applyAction } from '../src/core.js';
 import { renderReport, renderSummary } from '../src/presentation.js';
 import { logo, layout } from '../src/theme.js';
 import { launchTui } from '../src/tui.js';
+import { captureBaseline, compareBaseline } from '../src/baseline.js';
 
 const scope = 'openid email https://www.googleapis.com/auth/gmail.settings.basic';
 const appDir = join(homedir(), '.gmail-doctor');
@@ -38,6 +39,8 @@ Usage:
   gmail-doctor setup --client /path/to/desktop-client.json
   gmail-doctor account add [--account email]
   gmail-doctor account list
+  gmail-doctor baseline save --account you@gmail.com
+  gmail-doctor baseline check --account you@gmail.com
   gmail-doctor scan --all
   gmail-doctor scan --account you@gmail.com
   gmail-doctor repair --account you@gmail.com [--dry-run]
@@ -211,6 +214,32 @@ async function main() {
       saveBackup,
       provider: async email=>gmailApi(await accessToken(email))
     });
+  }
+  if (command === 'baseline') {
+    const mode=args[1];
+    if(!['save','check'].includes(mode)) throw new Error('Use baseline save|check --account EMAIL');
+    const list=await accounts();
+    const email=selectedAccount||(list.length===1?list[0]:null);
+    if(!email||!list.includes(email)) throw new Error('Specify a registered --account EMAIL.');
+    const {settings,errors}=await readSettings(gmailApi(await accessToken(email)));
+    if(errors.length) throw new Error('Incomplete Gmail API scan; baseline operation refused.');
+    const baselineDir=join(appDir,'baselines');
+    const filename=join(baselineDir,encodeURIComponent(email)+'.json');
+    if(mode==='save') {
+      await mkdir(baselineDir,{recursive:true,mode:0o700});
+      const baseline=captureBaseline(settings);
+      await writeFile(filename,JSON.stringify(baseline,null,2),{mode:0o600});
+      await chmod(filename,0o600);
+      console.log('Trusted snapshot saved:',email,baseline.filters.length,'filter(s). Future changes will be reported.');
+    } else {
+      let saved;
+      try {saved=JSON.parse(await readFile(filename,'utf8'));}
+      catch(e){if(e.code==='ENOENT')throw new Error('No baseline exists. Run baseline save --account EMAIL after reviewing settings.');throw e;}
+      const d=compareBaseline(saved,settings);
+      console.log('Filter changes for '+email+':',d.added.length+' new/modified,',d.removed.length+' removed/modified.');
+      if(d.changed)process.exitCode=2;
+    }
+    return;
   }
   if (command === 'account') {
     if (args[1] === 'add') return addAccount();
