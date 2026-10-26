@@ -23,7 +23,7 @@ const fixture = {
   forwardingAddresses: [{forwardingEmail:'unknown@example.net'}]
 };
 function help() {
-  console.log(`Gmail Doctor v0.1 — Gmail settings audit and repair
+  console.log(`Gmail Doctor v0.2 — Gmail settings audit and repair
 Usage:
   gmail-doctor scan [--demo] [--json]
   gmail-doctor repair [--demo] [--dry-run]

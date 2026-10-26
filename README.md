@@ -37,7 +37,7 @@ node bin/gmail-doctor.js repair --account you@gmail.com --dry-run
 node bin/gmail-doctor.js repair --account you@gmail.com
 ```
 
-The browser opens Google's actual login page. The requested OAuth scope is `gmail.settings.basic`. Refresh token is stored in macOS Keychain; OAuth client JSON stays only at the path you provide. Settings backups are stored with mode 0600 under `~/.gmail-doctor/backups`. There is **no Gmail password prompt**.
+The browser opens Google's actual login page. The requested OAuth scopes are `openid`, `email`, and `gmail.settings.basic`. Refresh token is stored in macOS Keychain; OAuth client JSON stays only at the path you provide. Settings backups are stored with mode 0600 under `~/.gmail-doctor/backups`. There is **no Gmail password prompt**.
 
 **Permission disclosure:** `gmail.settings.basic` can modify some mailbox settings; the OAuth permission itself is not technically read-only. Treat this CLI as powerful. A limited demo profile requires Google consent-screen tester access; general-use Google OAuth verification is separate.
 
@@ -53,7 +53,7 @@ The browser opens Google's actual login page. The requested OAuth scope is `gmai
 
 Automatic forwarding must be disabled **manually** in Gmail Settings → Forwarding and POP/IMAP. Google's updateAutoForwarding API requires Workspace service-account domain-wide delegation and is not available to consumer desktop OAuth.
 
-Only one automated operation in v0.1: **delete an individually selected filter**. A local settings snapshot is created before any repairs, but automatic rollback is **not** implemented. Do not approve removal of filters you recognize. Repeat scan after repairs.
+Only one automated operation in v0.2: **delete an individually selected filter**. A local settings snapshot is created before any repairs, but automatic rollback is **not** implemented. Do not approve removal of filters you recognize. Repeat scan after repairs.
 
 **Not checked:** active device sessions, stolen cookies, password changes, recovery email/phone, Family Link, third-party OAuth apps. **Not supported:** reclaiming inaccessible Gmail accounts, automatic send-as alias deletion for consumer accounts, automatic OAuth grant revocation. Use [Google Security Checkup](https://myaccount.google.com/security-checkup) and [Google Account Recovery](https://accounts.google.com/signin/recovery).
 
