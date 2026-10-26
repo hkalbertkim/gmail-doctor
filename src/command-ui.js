@@ -16,6 +16,7 @@ export function mouseScrollDirection(chunk) {
  const code=Number(events[events.length-1][1]);
  return (code & 64) ? ((code & 1) ? 1 : -1) : 0;
 }
+export function followNewest(){return null;}
 export function scrollWindow(items, pageSize, offset=0) {
  const size=Math.max(1,Math.floor(pageSize));
  const max=Math.max(0,items.length-size);
@@ -40,7 +41,7 @@ export async function launchCommandUi({getAccounts,scanAccount,checkBaseline}) {
   const [rows,setRows]=useState([]);
   const [messages,setMessages]=useState([]);
   const [scroll,setScroll]=useState(null);
-  const add=(text,color='white')=>setMessages(old=>[...old,{text:String(text),color}].slice(-100));
+  const add=(text,color='white')=>{setMessages(old=>[...old,{text:String(text),color}].slice(-100));setScroll(followNewest());};
   const section=(title)=>{add('');add('━━ '+title+' ━━','cyan');};
   async function scan(){
    setRunning(true);
@@ -91,6 +92,7 @@ export async function launchCommandUi({getAccounts,scanAccount,checkBaseline}) {
     return ()=>process.stdin.off('data',handler);
   },[maxScroll]);
   useInput((key,k)=> {
+   if(k.end || key==='\x1b[F'){setScroll(followNewest());return;}
    if(k.pageUp || key==='[5~'){setScroll(current=>Math.max(0,(current===null?maxScroll:current)-Math.max(1,available-2)));return;}
    if(k.pageDown || key==='[6~'){setScroll(current=>Math.min(maxScroll,(current===null?maxScroll:current)+Math.max(1,available-2)));return;}
    if(k.upArrow && commandRef.current===''){setScroll(current=>Math.max(0,(current===null?maxScroll:current)-1));return;}
@@ -134,7 +136,7 @@ export async function launchCommandUi({getAccounts,scanAccount,checkBaseline}) {
    e(Box,{paddingX:1,flexShrink:0},
     e(Text,{color:'green'},'› '),e(Text,{wrap:'truncate-end'},command||'Type /help or /scan ...')),
    e(Text,{color:'gray'},'─'.repeat(Math.max(1,width-1))),
-   e(Text,{color:'gray',wrap:'truncate-end'},'  /scan  /accounts  /security  /review  /help  /quit   ·   ↑↓ / wheel scroll'),
+   e(Text,{color:'gray',wrap:'truncate-end'},'  /scan  /accounts  /security  /review  /help  /quit   ·   ↑↓ / wheel scroll · End latest'),
    e(Text,{color:'yellow',wrap:'truncate-end'},'  2FA, sessions, recovery: NOT VERIFIED · Review directly with Google'));
 
 
