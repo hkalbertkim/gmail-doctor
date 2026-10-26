@@ -10,21 +10,43 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![Status](https://img.shields.io/badge/status-developer%20preview-orange)
 
-**Triage → Official guidance → Optional Gmail settings audit**
+**Find the right solution for your Gmail problem — before installing anything.**
 
-[Solutions index](docs/GMAIL_SOLUTIONS_INDEX.md) · [Start here](#start-here--quick-triage) · [Prevent lockout](#prevent-lockout-before-it-happens) · [Run the CLI](#run-gmail-doctor) · [What it can do](#what-gmail-doctor-can-and-cannot-do) · [Privacy](docs/PRIVACY.md)
+[Problem-solving index](docs/GMAIL_SOLUTIONS_INDEX.md) · [Gmail Doctor CLI](#we-also-built-gmail-doctor) · [Contribute](#help-us-improve)
 
 </div>
 
-> **If you're locked out:** Gmail Doctor **cannot bypass Google sign-in, 2-Step Verification, or account recovery**. Start with [Google's official Account Recovery](https://accounts.google.com/signin/recovery). Never pay someone claiming they can recover your account by asking for passwords or verification codes.
+## What's your Gmail problem?
+
+**Choose the situation closest to yours. The right first step may be Google's official tools, not an app.**
+
+| What's happening? | Where to go — and why |
+| --- | --- |
+| **My account was hacked or I can't sign in** | **[Account recovery steps](#start-here--quick-triage)** — start here if someone changed your password or recovery details. No installation required. |
+| **I lost my phone, 2FA key or verification method** | **[2FA recovery options](#what-if-an-attacker-already-controls-2fa)** — try another registered method and Google's official recovery process. |
+| **I see a suspicious login or unfamiliar device** | **[Google Security Checkup](https://myaccount.google.com/security-checkup)** — review active devices and recent events while you still have access. |
+| **My emails are being forwarded or filtered unexpectedly** | **[Gmail solutions index](docs/GMAIL_SOLUTIONS_INDEX.md)** — compare existing filter tools and the Gmail Doctor settings audit. |
+| **Nothing is wrong; I want to avoid lockout** | **[Prevention checklist](#prevent-lockout-before-it-happens)** — set up recovery methods and independent 2FA backups now. |
+| **I want to explore existing Gmail tools** | **[Gmail problem-solving index](docs/GMAIL_SOLUTIONS_INDEX.md)** — see official solutions and open-source tools, with capabilities and limitations. |
+| **I want to run Gmail Doctor** | **[Installation & CLI](#installation-and-usage)** — optional local Gmail settings audit and Emergency Help. |
+
+> **Locked out?** No third-party CLI can bypass Google sign-in or 2-Step Verification. Use [Google Account Recovery](https://accounts.google.com/signin/recovery). Never give your password or verification codes to people offering paid recovery.
 
 ## Why we put this together
 
-We've seen people asking about Gmail lockouts, stolen accounts, missing 2FA methods, and unexpected mail forwarding. **Good solutions already exist**—Google's own recovery flows and several useful open-source tools—but finding the right one for your situation is not always easy.
+We've seen people discussing Gmail lockouts, account takeovers, lost 2FA methods and unexpected mail forwarding. **Capable solutions already exist** — Google's official recovery tools and open-source projects — but they're scattered, and they solve different problems.
 
-**Start with the [Gmail problem-solving index](docs/GMAIL_SOLUTIONS_INDEX.md).** It organizes official help and existing projects by the problem they actually solve. You don't need to install Gmail Doctor to use it.
+## Gmail solutions index
 
-We also built **Gmail Doctor**, a local-first CLI for guided Emergency Help and Gmail settings audits when you still have access. If the index or app is useful, [tell us what worked and which features you need](https://github.com/hkalbertkim/gmail-doctor/issues). Contributions and corrections are welcome.
+**[Browse the Gmail problem-solving index →](docs/GMAIL_SOLUTIONS_INDEX.md)**
+
+The index organizes existing tools by the problem they solve, whether you need account access, and what they cannot do. It includes official Google recovery guidance and open-source tools such as [gmailctl](https://github.com/mbrt/gmailctl), [GAMADV-XTD3](https://github.com/taers232c/GAMADV-XTD3) and [Got Your Back](https://github.com/GAM-team/got-your-back). **You do not need to install Gmail Doctor to use the index.**
+
+## We also built Gmail Doctor
+
+We built **Gmail Doctor**, a local-first CLI that adds guided **Emergency Help**, multiple-account Gmail settings audits and review of suspicious forwarding/filter configurations. It's one option in the index, not a replacement for Google's identity verification.
+
+**[See what the CLI can and cannot do](#what-gmail-doctor-can-and-cannot-do)** · **[Install and run it](#installation-and-usage)**
 
 ## Start here — quick triage
 
@@ -78,7 +100,7 @@ Use this checklist **while you still control your account**, ideally on a truste
 
 **Important:** This checklist is guidance, not an automated security certification. Google security pages, not the Gmail API, control login sessions, 2FA and recovery options.
 
-## Run Gmail Doctor
+## Installation and usage
 
 Gmail Doctor is a local-first CLI that audits available Gmail settings across connected accounts. **The audit can help while you still have access; it cannot recover a locked account.**
 
@@ -162,6 +184,12 @@ The requested Gmail OAuth scope is `gmail.settings.basic`, which can change sett
 The current default interactive experience is a menu-based CLI with Emergency Help available from its main menu. Work on a Codex-inspired Rust terminal UI is isolated under [experiments/codex-tui-spike](experiments/codex-tui-spike) and is **not yet production-ready**. We will not claim Codex visual or behavioral parity until real macOS Terminal testing succeeds. Scanning and repair logic are preserved during this work.
 
 For technical context see [TUI acceptance gates](docs/CODEX_TUI_SPIKE.md) and [real user problem reports](docs/REDDIT_USER_REPORTS.md).
+
+## Help us improve
+
+**Did the index help you find the right next step?** If a useful official page or trustworthy open-source project is missing, or Gmail Doctor lacks a feature you need, [open an issue](https://github.com/hkalbertkim/gmail-doctor/issues). Include the situation and the resource or feature you are suggesting, **not** your email address, login details, recovery codes or tokens.
+
+Corrections and pull requests are welcome. We review suggestions but cannot guarantee recovery outcomes or commit to implementing every request.
 
 ## Privacy and project information
 
