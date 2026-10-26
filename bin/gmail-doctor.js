@@ -125,8 +125,8 @@ async function identityFromToken(token, clientId) {
   const check = await fetch('https://oauth2.googleapis.com/tokeninfo?id_token='+encodeURIComponent(token));
   if (!check.ok) throw new Error('Google identity verification endpoint rejected token');
   const payload = await check.json();
-  if (!['https://accounts.google.com','accounts.google.com'].includes(payload.iss) || payload.aud !== clientId || payload.exp * 1000 <= Date.now() || !payload.email || payload.email_verified !== true)
-    throw new Error('Google account identity verification failed');
+  if (!['https://accounts.google.com','accounts.google.com'].includes(payload.iss) || payload.aud !== clientId || payload.exp * 1000 <= Date.now() || !payload.email || !['true',true].includes(payload.email_verified))
+    throw new Error('Google account identity verification failed (issuer, audience, expiry, or verified email).');
   return payload.email.toLowerCase();
 }
 async function addAccount() {
