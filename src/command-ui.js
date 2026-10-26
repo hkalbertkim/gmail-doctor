@@ -102,7 +102,7 @@ export async function launchCommandUi({getAccounts,scanAccount,checkBaseline}) {
     e(Text,{color:'gray'},'/scan  /accounts  /security  /2fa  /review  /help  /quit')));
  }
  const clear=process.stdout.isTTY && process.env.TERM!=='dumb';
- if(clear)process.stdout.write('\x1b[2J\x1b[H');
+ if(clear)process.stdout.write('\x1b[3J\x1b[2J\x1b[H');
  const instance=render(e(App),{exitOnCtrlC:true});
  await instance.waitUntilExit();
 }
