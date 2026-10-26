@@ -6,6 +6,7 @@ import { steps, renderReview } from './takeover.js';
 import { spawn } from 'node:child_process';
 import { progress } from './progress.js';
 import { wrapText, terminalWidth } from './format.js';
+import { scenarios } from './triage.js';
 
 const line = '─'.repeat(54);
 export function dashboard(rows=[]) {
@@ -104,6 +105,20 @@ export async function launchTui({getAccounts, addAccount, scanAccount, saveBacku
     const after=await inspect(email);
     console.log(`Verified: ${after.findings.filter(x=>x.severity==='warning').length} warning(s) remaining. Check account security separately.`);
   };
+  const emergencyHelp=async()=>{
+    const choice=await select({message:'Emergency Help — what is happening?',choices:[
+      ...scenarios.map(s=>({name:'['+s.urgency+'] '+s.name,value:s.id})),
+      {name:'Back to main menu',value:'back'}
+    ]});
+    if(choice==='back')return;
+    const scenario=scenarios.find(s=>s.id===choice);
+    console.log('\n'+scenario.name+' — '+scenario.urgency);
+    console.log(wrapText(scenario.next,terminalWidth()));
+    console.log('\nGmail Doctor cannot bypass Google sign-in or 2FA and cannot guarantee account recovery.');
+    console.log('Official account recovery: https://accounts.google.com/signin/recovery');
+    console.log('Official security checkup: https://myaccount.google.com/security-checkup');
+    console.log('No Gmail settings were changed.');
+  };
   const scanAll=async()=>{
     const list=await getAccounts();
     if(!list.length){console.log('No accounts connected. Choose Add Google account first.');return;}
@@ -134,6 +149,7 @@ export async function launchTui({getAccounts, addAccount, scanAccount, saveBacku
     const list=await getAccounts();
     console.log('\n'+dashboard(list.map(email=>({email,...(results.get(email)||{})}))));
     const choice=await select({message:'Select action',choices:[
+      {name:'Emergency Help — locked out, lost 2FA or suspicious activity',value:'emergency'},
       {name:'Review Google account security',value:'takeover'},
       {name:'Scan all accounts',value:'scan'},
       {name:'Review findings / repair selected filters',value:'review'},
@@ -142,6 +158,7 @@ export async function launchTui({getAccounts, addAccount, scanAccount, saveBacku
     ]});
     if(choice==='exit') break;
     if(choice==='add') {await addAccount();continue;}
+    if(choice==='emergency') {await emergencyHelp();continue;}
     if(choice==='takeover') {await takeover();continue;}
     if(choice==='review') {await review();continue;}
     if(choice==='scan') {

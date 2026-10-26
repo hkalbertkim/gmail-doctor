@@ -82,14 +82,14 @@ cd gmail-doctor
 npm ci
 npm link
 
-# Read the emergency guide, without signing in:
-gmail-doctor triage
+# Start interactive Gmail Doctor; select Emergency Help from the menu:
+gmail-doctor
 
 # Try a safe synthetic Gmail settings scan:
 gmail-doctor scan --demo
 
-# Start the current interactive dashboard:
-gmail-doctor
+# Optional: print Emergency Help directly without connecting an account:
+gmail-doctor triage
 ```
 
 ### Connect an account (developer preview)
@@ -113,7 +113,7 @@ Google handles sign-in and consent. **Do not enter your Google password, backup 
 
 ```text
 gmail-doctor                          Current interactive menu
-gmail-doctor triage                   Immediate emergency/prevention guide
+gmail-doctor triage                   Emergency guidance (also inside the app)
 gmail-doctor scan --demo              Offline fictional demo
 gmail-doctor scan --all               Scan connected Gmail accounts
 gmail-doctor scan --account EMAIL     Scan a specific account
@@ -151,7 +151,7 @@ The requested Gmail OAuth scope is `gmail.settings.basic`, which can change sett
 
 ## Development and terminal UX
 
-The current default interactive experience is a stable menu-based CLI. Work on a Codex-inspired Rust terminal UI is isolated under [experiments/codex-tui-spike](experiments/codex-tui-spike) and is **not yet production-ready**. We will not claim Codex visual or behavioral parity until real macOS Terminal testing succeeds. Scanning and repair logic are preserved during this work.
+The current default interactive experience is a menu-based CLI with Emergency Help available from its main menu. Work on a Codex-inspired Rust terminal UI is isolated under [experiments/codex-tui-spike](experiments/codex-tui-spike) and is **not yet production-ready**. We will not claim Codex visual or behavioral parity until real macOS Terminal testing succeeds. Scanning and repair logic are preserved during this work.
 
 For technical context see [TUI acceptance gates](docs/CODEX_TUI_SPIKE.md) and [real user problem reports](docs/REDDIT_USER_REPORTS.md).
 
