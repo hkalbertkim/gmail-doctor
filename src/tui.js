@@ -4,6 +4,7 @@ import { renderReport, formatFinding } from './presentation.js';
 import { logo, layout } from './theme.js';
 import { steps, renderReview } from './takeover.js';
 import { spawn } from 'node:child_process';
+import { progress } from './progress.js';
 
 const line = '─'.repeat(54);
 export function dashboard(rows=[]) {
@@ -105,17 +106,26 @@ export async function launchTui({getAccounts, addAccount, scanAccount, saveBacku
   const scanAll=async()=>{
     const list=await getAccounts();
     if(!list.length){console.log('No accounts connected. Choose Add Google account first.');return;}
-    for(const email of list){
-      try{await inspect(email);}
+    const total=list.length;
+    console.log('\n'+progress('start',0,total));
+    for(let i=0;i<list.length;i++){
+      const email=list[i];
+      console.log(progress('scanning',i,total,email));
+      try {
+        const data=await inspect(email);
+        const warnings=data.findings.filter(f=>f.severity==='warning').length;
+        console.log('  Completed: '+warnings+' warning(s), '+data.errors.length+' incomplete check(s)');
+      }
       catch(e){console.log('Scan incomplete for '+email+': '+e.message);results.set(email,{error:e.message});}
     }
-    console.log('
-ACCOUNT SECURITY CHECKS — GOOGLE REVIEW REQUIRED');
-    console.log('Gmail API cannot verify 2FA, login sessions, recovery methods, Family Link, or third-party access.');
-    console.log('Review Google Account security separately for each account:');
-    for(const email of list) console.log('  '+email+'  →  https://myaccount.google.com/security-checkup');
+    console.log(progress('manual',total,total));
+    console.log('Automatic Gmail checks are complete. Google Account security requires owner review.');
+    console.log('2FA, login sessions, recovery details, Family Link and OAuth app permissions: NOT VERIFIED.');
+    console.log('Google account security checkup: https://myaccount.google.com/security-checkup');
     console.log('2-Step Verification: https://myaccount.google.com/signinoptions/two-step-verification');
-    console.log('Unreviewed categories remain NOT VERIFIED; no account changes were made.');
+    console.log('Review the official Google pages using the correct account for each session.');
+    console.log(progress('done',total,total));
+    console.log('No Gmail settings were changed.');
   };
   if (startWithTakeover) {await scanAll(); return;}
   await scanAll();

@@ -161,3 +161,7 @@ Implementation references: [gmailctl](https://github.com/mbrt/gmailctl) (MIT) an
 ## v0.7 automatic-first dashboard
 
 Running `gmail-doctor` immediately scans every connected account for Gmail settings risks and compares any locally stored trusted baseline. After the scan it displays one summary of additional checks that **must be reviewed directly with Google** (2-Step Verification, security events, devices, recovery settings and third-party access). It never silently assumes those unverified categories are safe. It performs no automatic repair. The interactive menu remains available after the initial scan.
+
+## Guided progress (v0.7.1)
+
+Launching Gmail Doctor now shows three workflow stages: (1) connected accounts, (2) automatic Gmail settings scan and trusted baseline comparison for each account in order, and (3) Google security review. The current account and scan number are displayed. Google Account login sessions, 2FA status, recovery methods and connected apps cannot be inspected via Gmail API and remain NOT VERIFIED until the owner reviews official Google security pages. Scanning never changes Gmail settings.
