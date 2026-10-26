@@ -9,6 +9,13 @@ export function parseCommand(value) {
 export function panelState(rows=[],step='Ready') {
  return {accounts:rows.length,warnings:rows.reduce((n,r)=>n+(r.warnings||0),0),incomplete:rows.filter(r=>r.error||r.unchecked).length,step};
 }
+export function mouseScrollDirection(chunk) {
+ const input=String(chunk);
+ const events=[...input.matchAll(/\[<([0-9]+);[0-9]+;[0-9]+[Mm]/g)];
+ if(!events.length)return 0;
+ const code=Number(events[events.length-1][1]);
+ return (code & 64) ? ((code & 1) ? 1 : -1) : 0;
+}
 export function scrollWindow(items, pageSize, offset=0) {
  const size=Math.max(1,Math.floor(pageSize));
  const max=Math.max(0,items.length-size);
@@ -70,6 +77,14 @@ export async function launchCommandUi({getAccounts,scanAccount,checkBaseline}) {
   const maxScroll=Math.max(0,entries.length-available);
   const offset=scroll===null?maxScroll:Math.min(scroll,maxScroll);
   const visible=scrollWindow(entries,available,offset);
+  useEffect(()=>{
+    const handler=chunk=>{
+      const direction=mouseScrollDirection(chunk);
+      if(direction) setScroll(old=>Math.max(0,Math.min(maxScroll,(old===null?maxScroll:old)+direction*3)));
+    };
+    process.stdin.on('data',handler);
+    return ()=>process.stdin.off('data',handler);
+  },[maxScroll]);
   useInput((key,k)=> {
    if(k.pageUp || key==='[5~'){setScroll(current=>Math.max(0,(current===null?maxScroll:current)-Math.max(1,available-2)));return;}
    if(k.pageDown || key==='[6~'){setScroll(current=>Math.min(maxScroll,(current===null?maxScroll:current)+Math.max(1,available-2)));return;}
@@ -108,16 +123,16 @@ export async function launchCommandUi({getAccounts,scanAccount,checkBaseline}) {
    e(Box,{flexGrow:1,minHeight:0}),
    e(Box,{borderStyle:'round',borderColor:'cyan',paddingX:1,flexShrink:0},
     e(Text,{color:'green'},'› '),e(Text,{wrap:'truncate-end'},command||'Type /help or /scan ...')),
-   e(Text,{color:'gray',wrap:'truncate-end'},'/scan  /accounts  /security  /review  /help  /quit  ·  ↑↓/PgUp/PgDn scroll'),
+   e(Text,{color:'gray',wrap:'truncate-end'},'/scan  /accounts  /security  /review  /help  /quit  ·  wheel/↑↓/PgUp scroll'),
    e(Text,{color:'yellow',wrap:'truncate-end'},'2FA, login sessions and recovery options: NOT VERIFIED (Google review required)'));
 
  }
  const alt=process.stdout.isTTY && process.env.TERM!=='dumb';
- if(alt)process.stdout.write('\x1b[?1049h\x1b[H');
+ if(alt)process.stdout.write('\x1b[?1049h\x1b[H\x1b[?1000h\x1b[?1006h');
  try {
   const instance=render(e(App),{exitOnCtrlC:true});
   await instance.waitUntilExit();
  } finally {
-  if(alt)process.stdout.write('\x1b[?1049l');
+  if(alt)process.stdout.write('\x1b[?1006l\x1b[?1000l\x1b[?1049l');
  }
 }

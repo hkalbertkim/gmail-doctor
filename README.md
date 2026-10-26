@@ -173,3 +173,7 @@ Run `gmail-doctor` to open a terminal dashboard with a bordered status header, r
 ## Fixed-screen terminal interface (v0.8.2)
 
 The interactive dashboard runs in a terminal alternate screen so normal terminal scrollback does not move the command prompt. The results window is independently paginated using Up/Down and PageUp/PageDown when the command input is empty, while the bottom input stays visible. Exiting restores the original terminal screen. Mouse-wheel scrolling inside the results pane is not yet supported. The noninteractive `scan --all` and `--json` commands remain unchanged.
+
+### Terminal mouse-wheel support (v0.8.3)
+
+On terminals supporting xterm SGR mouse reporting, Gmail Doctor captures wheel-up/down and scrolls the RESULTS viewport rather than terminal scrollback. The input box remains on screen. Arrow keys and PageUp/PageDown also work. Mouse reporting is disabled on exit. Terminal applications can have different scrollback settings; if your terminal still scrolls its history, try the keyboard controls and report the terminal name/version.
