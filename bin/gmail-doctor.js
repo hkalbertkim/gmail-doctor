@@ -8,6 +8,7 @@ import { spawn, execFileSync } from 'node:child_process';
 import { createInterface } from 'node:readline/promises';
 import { stdin, stdout } from 'node:process';
 import { assess, readSettings, applyAction } from '../src/core.js';
+import { renderReport, renderSummary } from '../src/presentation.js';
 
 const scope = 'openid email https://www.googleapis.com/auth/gmail.settings.basic';
 const appDir = join(homedir(), '.gmail-doctor');
@@ -162,20 +163,13 @@ function gmailApi(token) {
     return res.json();
   };
 }
-async function report(api, jsonMode=false) {
+async function report(api, jsonMode=false, displayAccount=null) {
   const {settings,errors} = demo ? {settings:fixture,errors:[]} : await readSettings(api);
   const assessed = assess(settings);
   const result = {...assessed, errors, coverage: Object.keys(settings)};
   if (jsonMode) console.log(JSON.stringify(result,null,2));
-  else {
-    console.log('\nGmail Doctor '+(demo?'DEMO (no Gmail connection)':'live scan'));
-    for (const item of assessed.findings) console.log('['+item.severity.toUpperCase()+'] '+item.detail);
-    if (!assessed.findings.length) console.log('No flagged settings found in scanned categories.');
-    for (const err of errors) console.log('[NOT CHECKED] '+err);
-    console.log('\nCannot assess: sign-in devices, active sessions, recovery options, Family Link, third-party OAuth grants.');
-    console.log('Review: https://myaccount.google.com/security-checkup');
-    console.log('This is a settings audit, not proof that your account is safe.');
-  }
+  else console.log(renderReport({email: displayAccount, findings: assessed.findings, errors, demo}));
+
   return {settings,...result};
 }
 async function saveBackup(data, email) {
@@ -223,11 +217,11 @@ async function main() {
     for (const email of list) {
       console.log('\nAccount:',email);
       try {
-        const result=await report(gmailApi(await accessToken(email)));
+        const result=await report(gmailApi(await accessToken(email)),false,email);
         summary.push({email,warnings:result.findings.filter(f=>f.severity==='warning').length,unchecked:result.errors.length});
       } catch(e) {console.log('[ERROR] '+e.message);summary.push({email,error:e.message});}
     }
-    console.log('\nSummary:',JSON.stringify(summary,null,2));
+    console.log(renderSummary(summary));
     if (summary.some(x=>x.error||x.unchecked)) process.exitCode=1;
     return;
   }
@@ -235,9 +229,9 @@ async function main() {
   const email=demo?null:(selectedAccount||(list.length===1?list[0]:null));
   if (!demo && !email) throw new Error('Multiple/no accounts registered: use --account email, or gmail-doctor scan --all.');
   if (!demo && !list.includes(email)) throw new Error('Account not registered: '+email);
-  if (!demo) console.log('Account:',email);
+
   const api = demo ? async ()=>{throw new Error('Demo forbids API writes');} : gmailApi(await accessToken(email));
-  const result = await report(api,args.includes('--json') && command==='scan');
+  const result = await report(api,args.includes('--json') && command==='scan',email);
   if (command!=='repair') return;
   if (result.errors.length) throw new Error('Partial scan: repair disabled until all settings read successfully.');
   if (!result.actions.length) { console.log('No automated repairs proposed.'); return; }

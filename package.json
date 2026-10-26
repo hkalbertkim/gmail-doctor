@@ -1,8 +1,8 @@
 {
   "name": "gmail-doctor-cli",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "Local-first Gmail settings auditor and consent-based repair CLI",
   "type": "module",
   "bin": {"gmail-doctor": "./bin/gmail-doctor.js"},
-  "scripts": {"test": "node --test", "check": "node --check bin/gmail-doctor.js && node --check src/core.js"}
+  "scripts": {"test": "node --test", "check": "node --check bin/gmail-doctor.js && node --check src/core.js && node --check src/presentation.js"}
 }
