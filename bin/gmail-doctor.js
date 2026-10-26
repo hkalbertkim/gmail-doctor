@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { createServer } from 'node:http';
 import { createHash, randomBytes } from 'node:crypto';
-import { readFile, mkdir, writeFile, chmod } from 'node:fs/promises';
+import { readFile, mkdir, writeFile, chmod, copyFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { spawn, execFileSync } from 'node:child_process';
@@ -11,6 +11,7 @@ import { assess, readSettings, applyAction } from '../src/core.js';
 
 const scope = 'openid email https://www.googleapis.com/auth/gmail.settings.basic';
 const appDir = join(homedir(), '.gmail-doctor');
+const oauthConfigPath = join(appDir, 'oauth-client.json');
 const keychainName = 'gmail-doctor-oauth-v1';
 const args = process.argv.slice(2);
 const command = args[0] || 'help';
@@ -27,6 +28,7 @@ function help() {
 Usage:
   gmail-doctor scan [--demo] [--json]
   gmail-doctor repair [--demo] [--dry-run]
+  gmail-doctor setup --client /path/to/desktop-client.json
   gmail-doctor account add
   gmail-doctor account list
   gmail-doctor scan --all
@@ -35,9 +37,9 @@ Usage:
   gmail-doctor logout --account you@gmail.com
   gmail-doctor help
 
-First create a Google Cloud Desktop OAuth client, enable Gmail API,
-download its JSON and set GMAIL_DOCTOR_OAUTH_CLIENT=/absolute/path/client.json.
-A Google browser sign-in is launched on first live scan.
+First enable Gmail API and create a Google Desktop OAuth client.
+Run gmail-doctor setup --client /path/to/client.json once.
+Google browser sign-in opens when you add each account.
 No mail body is accessed. Gmail account sessions, recovery settings,
 Family Link and other apps' OAuth grants are NOT inspected.
 A clean scan does NOT guarantee that your account is secure.`);
@@ -48,9 +50,11 @@ function clientConfig(json) {
   return c;
 }
 async function getClient() {
-  const p = process.env.GMAIL_DOCTOR_OAUTH_CLIENT;
-  if (!p) throw new Error('Set GMAIL_DOCTOR_OAUTH_CLIENT to your Google Desktop OAuth client JSON path.');
-  return clientConfig(JSON.parse(await readFile(resolve(p), 'utf8')));
+  const p = process.env.GMAIL_DOCTOR_OAUTH_CLIENT || oauthConfigPath;
+  let contents;
+  try { contents = await readFile(resolve(p), 'utf8'); }
+  catch(e) { if(e.code==='ENOENT') throw new Error('OAuth client missing. Run gmail-doctor setup --client /path/to/client.json'); throw e; }
+  return clientConfig(JSON.parse(contents));
 }
 function keychain(op, account, value) {
   if (process.platform !== 'darwin') throw new Error('Token persistence currently supports macOS Keychain only.');
@@ -182,6 +186,17 @@ async function saveBackup(data, email) {
   return p;
 }
 async function main() {
+  if (command==='setup') {
+    const i=args.indexOf('--client');
+    if(i<0 || !args[i+1]) throw new Error('Use gmail-doctor setup --client /path/to/client.json');
+    const source=resolve(args[i+1]);
+    clientConfig(JSON.parse(await readFile(source,'utf8')));
+    await mkdir(appDir,{recursive:true,mode:0o700});
+    if(source!==oauthConfigPath) await copyFile(source,oauthConfigPath);
+    await chmod(oauthConfigPath,0o600);
+    console.log('OAuth client configured locally. Next: gmail-doctor account add');
+    return;
+  }
   if (command==='help'||args.includes('--help')) { help(); return; }
   if (command === 'account') {
     if (args[1] === 'add') return addAccount();
