@@ -12,11 +12,19 @@
 
 **Triage → Official guidance → Optional Gmail settings audit**
 
-[Start here](#start-here--quick-triage) · [Prevent lockout](#prevent-lockout-before-it-happens) · [Run the CLI](#run-gmail-doctor) · [What it can do](#what-gmail-doctor-can-and-cannot-do) · [Privacy](docs/PRIVACY.md)
+[Solutions index](docs/GMAIL_SOLUTIONS_INDEX.md) · [Start here](#start-here--quick-triage) · [Prevent lockout](#prevent-lockout-before-it-happens) · [Run the CLI](#run-gmail-doctor) · [What it can do](#what-gmail-doctor-can-and-cannot-do) · [Privacy](docs/PRIVACY.md)
 
 </div>
 
 > **If you're locked out:** Gmail Doctor **cannot bypass Google sign-in, 2-Step Verification, or account recovery**. Start with [Google's official Account Recovery](https://accounts.google.com/signin/recovery). Never pay someone claiming they can recover your account by asking for passwords or verification codes.
+
+## Why we put this together
+
+We've seen people asking about Gmail lockouts, stolen accounts, missing 2FA methods, and unexpected mail forwarding. **Good solutions already exist**—Google's own recovery flows and several useful open-source tools—but finding the right one for your situation is not always easy.
+
+**Start with the [Gmail problem-solving index](docs/GMAIL_SOLUTIONS_INDEX.md).** It organizes official help and existing projects by the problem they actually solve. You don't need to install Gmail Doctor to use it.
+
+We also built **Gmail Doctor**, a local-first CLI for guided Emergency Help and Gmail settings audits when you still have access. If the index or app is useful, [tell us what worked and which features you need](https://github.com/hkalbertkim/gmail-doctor/issues). Contributions and corrections are welcome.
 
 ## Start here — quick triage
 
