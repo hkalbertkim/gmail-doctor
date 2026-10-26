@@ -9,11 +9,12 @@ import { createInterface } from 'node:readline/promises';
 import { stdin, stdout } from 'node:process';
 import { assess, readSettings, applyAction } from '../src/core.js';
 
-const scope = 'https://www.googleapis.com/auth/gmail.settings.basic';
+const scope = 'openid email https://www.googleapis.com/auth/gmail.settings.basic';
 const appDir = join(homedir(), '.gmail-doctor');
 const keychainName = 'gmail-doctor-oauth-v1';
 const args = process.argv.slice(2);
 const command = args[0] || 'help';
+const selectedAccount = args.includes('--account') ? args[args.indexOf('--account') + 1]?.toLowerCase() : null;
 const demo = args.includes('--demo');
 const fixture = {
   autoForwarding: { enabled: true, emailAddress: 'unknown@example.net' },
@@ -26,7 +27,12 @@ function help() {
 Usage:
   gmail-doctor scan [--demo] [--json]
   gmail-doctor repair [--demo] [--dry-run]
-  gmail-doctor logout
+  gmail-doctor account add
+  gmail-doctor account list
+  gmail-doctor scan --all
+  gmail-doctor scan --account you@gmail.com
+  gmail-doctor repair --account you@gmail.com [--dry-run]
+  gmail-doctor logout --account you@gmail.com
   gmail-doctor help
 
 First create a Google Cloud Desktop OAuth client, enable Gmail API,
@@ -94,24 +100,52 @@ async function browserLogin(client) {
     return await tokenRequest({code,client_id:client.client_id,client_secret:client.client_secret,redirect_uri,grant_type:'authorization_code',code_verifier:verifier});
   } finally { clearTimeout(timeout); server.close(); }
 }
-async function accessToken() {
+const accountFile = join(appDir, 'accounts.json');
+async function accounts() {
+  try { const values = JSON.parse(await readFile(accountFile, 'utf8')); return Array.isArray(values) ? values : []; }
+  catch (e) { if (e.code === 'ENOENT') return []; throw e; }
+}
+async function remember(email) {
+  await mkdir(appDir, {recursive:true,mode:0o700});
+  const list = await accounts();
+  if (!list.includes(email)) await writeFile(accountFile, JSON.stringify([...list,email].sort(),null,2), {mode:0o600});
+  await chmod(accountFile,0o600);
+}
+async function forget(email) {
+  await writeFile(accountFile,JSON.stringify((await accounts()).filter(x=>x!==email),null,2),{mode:0o600});
+}
+async function identityFromToken(token, clientId) {
+  if (!token) throw new Error('Google did not provide an identity token');
+  const parts = token.split('.');
+  if (parts.length !== 3) throw new Error('Invalid Google identity token');
+  const check = await fetch('https://oauth2.googleapis.com/tokeninfo?id_token='+encodeURIComponent(token));
+  if (!check.ok) throw new Error('Google identity verification endpoint rejected token');
+  const payload = await check.json();
+  if (!['https://accounts.google.com','accounts.google.com'].includes(payload.iss) || payload.aud !== clientId || payload.exp * 1000 <= Date.now() || !payload.email || payload.email_verified !== true)
+    throw new Error('Google account identity verification failed');
+  return payload.email.toLowerCase();
+}
+async function addAccount() {
   const c = await getClient();
-  const saved = keychain('read',c.client_id);
-  if (saved) {
-    try {
-      const data = await tokenRequest({refresh_token:saved,client_id:c.client_id,client_secret:c.client_secret,grant_type:'refresh_token'});
-      return data.access_token;
-    } catch { console.error('Stored authorization needs renewal.'); }
-  }
-  const result = await browserLogin(c);
-  if (result.refresh_token) {
-    if (process.platform !== 'darwin') throw new Error('Cannot safely persist the refresh token on this platform.');
-    if (!keychain('write',c.client_id,result.refresh_token)) {
-      // security add-generic-password normally prints nothing on success. verify via read.
-      if (!keychain('read',c.client_id)) throw new Error('Unable to persist refresh token in macOS Keychain.');
-    }
-  }
-  return result.access_token;
+  const tokens = await browserLogin(c);
+  const email = await identityFromToken(tokens.id_token,c.client_id);
+  if (!tokens.refresh_token) throw new Error('Google did not issue an offline token; account not saved.');
+  const key = c.client_id + ':' + email;
+  keychain('write',key,tokens.refresh_token);
+  if (keychain('read',key) !== tokens.refresh_token) throw new Error('Could not save token securely in Keychain.');
+  await remember(email);
+  console.log('Added account:',email);
+}
+async function accessToken(email) {
+  if (!email) throw new Error('Specify an account or run gmail-doctor account add first.');
+  const known = await accounts();
+  if (!known.includes(email)) throw new Error('Unknown account '+email+'; run gmail-doctor account add.');
+
+  const c = await getClient();
+  const saved = keychain('read',c.client_id+':'+email);
+  if (!saved) throw new Error('No local Keychain authorization for '+email+'; run gmail-doctor account add.');
+  const data = await tokenRequest({refresh_token:saved,client_id:c.client_id,client_secret:c.client_secret,grant_type:'refresh_token'});
+  return data.access_token;
 }
 function gmailApi(token) {
   return async (method,path,body) => {
@@ -140,23 +174,54 @@ async function report(api, jsonMode=false) {
   }
   return {settings,...result};
 }
-async function saveBackup(data) {
+async function saveBackup(data, email) {
   await mkdir(join(appDir,'backups'),{recursive:true,mode:0o700});
-  const p = join(appDir,'backups','settings-'+new Date().toISOString().replaceAll(':','-')+'.json');
+  const p = join(appDir,'backups','settings-'+encodeURIComponent(email || 'demo')+'-'+new Date().toISOString().replaceAll(':','-')+'.json');
   await writeFile(p,JSON.stringify(data,null,2),{mode:0o600,flag:'wx'});
   await chmod(p,0o600);
   return p;
 }
 async function main() {
   if (command==='help'||args.includes('--help')) { help(); return; }
+  if (command === 'account') {
+    if (args[1] === 'add') return addAccount();
+    if (args[1] === 'list') { const list=await accounts(); console.log(list.length?list.join('\n'):'No accounts registered. Run gmail-doctor account add.'); return; }
+    throw new Error('Use gmail-doctor account add or gmail-doctor account list.');
+  }
   if (command==='logout') {
-    const c = await getClient();
-    keychain('delete',c.client_id);
-    console.log('Local Keychain refresh token removed. Revoke Google access separately at https://myaccount.google.com/connections');
+    const list=await accounts();
+    const email=selectedAccount || (list.length===1?list[0]:null);
+    if (!email || !list.includes(email)) throw new Error('Specify a registered --account email.');
+    const c=await getClient();
+    keychain('delete',c.client_id+':'+email);
+    await forget(email);
+    console.log('Removed local authorization for '+email+'. Revoke Google access separately at https://myaccount.google.com/connections');
     return;
   }
   if (!['scan','repair'].includes(command)) throw new Error('Unknown command. Run gmail-doctor help.');
-  const api = demo ? async ()=>{throw new Error('Demo forbids API writes');} : gmailApi(await accessToken());
+  if (args.includes('--all')) {
+    if (command!=='scan') throw new Error('--all only supports scan, never repair.');
+    if (demo) throw new Error('Demo cannot scan multiple accounts.');
+    const list=await accounts();
+    if (!list.length) throw new Error('No accounts registered. Run gmail-doctor account add.');
+    const summary=[];
+    for (const email of list) {
+      console.log('\nAccount:',email);
+      try {
+        const result=await report(gmailApi(await accessToken(email)));
+        summary.push({email,warnings:result.findings.filter(f=>f.severity==='warning').length,unchecked:result.errors.length});
+      } catch(e) {console.log('[ERROR] '+e.message);summary.push({email,error:e.message});}
+    }
+    console.log('\nSummary:',JSON.stringify(summary,null,2));
+    if (summary.some(x=>x.error||x.unchecked)) process.exitCode=1;
+    return;
+  }
+  const list=demo?[]:await accounts();
+  const email=demo?null:(selectedAccount||(list.length===1?list[0]:null));
+  if (!demo && !email) throw new Error('Multiple/no accounts registered: use --account email, or gmail-doctor scan --all.');
+  if (!demo && !list.includes(email)) throw new Error('Account not registered: '+email);
+  if (!demo) console.log('Account:',email);
+  const api = demo ? async ()=>{throw new Error('Demo forbids API writes');} : gmailApi(await accessToken(email));
   const result = await report(api,args.includes('--json') && command==='scan');
   if (command!=='repair') return;
   if (result.errors.length) throw new Error('Partial scan: repair disabled until all settings read successfully.');
@@ -164,7 +229,7 @@ async function main() {
   if (demo) { console.log('Demo mode: no changes can be made.'); return; }
   if (args.includes('--dry-run')) { console.log('Dry run: no changes made. Proposed:',result.actions); return; }
   console.log('\nOnly individual, explicitly confirmed repairs will run.');
-  const backup = await saveBackup(result.settings);
+  const backup = await saveBackup(result.settings, email);
   console.log('Settings backup saved locally:',backup);
   const rl = createInterface({input:stdin,output:stdout});
   try {

@@ -30,9 +30,11 @@ The demo uses a fictional account and performs **no authentication and no writes
 
 ```sh
 export GMAIL_DOCTOR_OAUTH_CLIENT="$HOME/secure/google-desktop-oauth.json"
-node bin/gmail-doctor.js scan
-node bin/gmail-doctor.js repair --dry-run
-node bin/gmail-doctor.js repair
+node bin/gmail-doctor.js account add  # Opens Google login for each account
+node bin/gmail-doctor.js account list
+node bin/gmail-doctor.js scan --all
+node bin/gmail-doctor.js repair --account you@gmail.com --dry-run
+node bin/gmail-doctor.js repair --account you@gmail.com
 ```
 
 The browser opens Google's actual login page. The requested OAuth scope is `gmail.settings.basic`. Refresh token is stored in macOS Keychain; OAuth client JSON stays only at the path you provide. Settings backups are stored with mode 0600 under `~/.gmail-doctor/backups`. There is **no Gmail password prompt**.
@@ -72,3 +74,7 @@ npm run check
 ```
 
 MIT Licensed. Contributions welcome for independent tests, threat scenarios, and Google OAuth verification improvements.
+
+## Multiple Google accounts
+
+Run `gmail-doctor account add` once for each Gmail account, selecting a different account in the Google login screen. Each refresh token is stored separately in macOS Keychain by account. The local `~/.gmail-doctor/accounts.json` contains **email addresses only**, never tokens. `scan --all` reports each account separately; **repairs always require one explicit account** and confirmation for each action. Use `logout --account you@gmail.com` to delete its local token.
