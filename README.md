@@ -4,7 +4,7 @@
 
 # Gmail Doctor
 
-**Audit Gmail settings. Keep your inbox yours.**
+**Check Google Account security. Audit Gmail settings. Fix what you can.**
 
 [![Release](https://img.shields.io/github/v/release/hkalbertkim/gmail-doctor)](https://github.com/hkalbertkim/gmail-doctor/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -18,10 +18,23 @@ A local-first, open-source terminal tool for reviewing Gmail forwarding rules, p
 
 > **Developer Preview.** Google OAuth verification is pending. Connecting your own account currently requires a Google Cloud **Desktop OAuth client** and approved test access. No public one-click sign-in yet.
 
+## Account Takeover Check — start here
+
+**Inspired by real Gmail account-takeover reports.** People have reported losing access after an attacker changed sign-in devices, recovery details, or Family Link supervision. Read the original discussions and learn what we can and cannot address in [Real Reddit user reports](docs/REDDIT_USER_REPORTS.md).
+
+Run `gmail-doctor` (or `gmail-doctor takeover-check`) and select **Account Takeover Check**. The tool guides you through:
+- **Two-Step Verification (2FA) first:** Open Google's official settings, check whether it is on, and enable it there if needed. Gmail Doctor **cannot read or toggle the 2FA setting itself**.
+- Review recent security events, unfamiliar signed-in devices, recovery options, and connected apps through Google.
+- Record what you personally reviewed. Unchecked items are **not** shown as safe.
+- If locked out, use [Google Account Recovery](https://accounts.google.com/signin/recovery).
+
+This is a **manual, guided account security review**, not automated account takeover detection or recovery. Never enter passwords, passkeys or backup codes into Gmail Doctor.
+
 ## What it does
 
 | Capability | Supported today |
 | --- | --- |
+| Guided Account Takeover Check, including 2FA setup links | Yes, **manual Google review** |
 | Scan multiple connected Gmail accounts | Yes |
 | Identify mail-forwarding filters and filters that trash or hide messages | Yes |
 | Review sender aliases, POP/IMAP, and configured forwarding addresses | Yes |

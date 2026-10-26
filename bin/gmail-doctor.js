@@ -11,6 +11,7 @@ import { assess, readSettings, applyAction } from '../src/core.js';
 import { renderReport, renderSummary } from '../src/presentation.js';
 import { logo, layout } from '../src/theme.js';
 import { launchTui } from '../src/tui.js';
+import { renderReview } from '../src/takeover.js';
 import { captureBaseline, compareBaseline } from '../src/baseline.js';
 
 const scope = 'openid email https://www.googleapis.com/auth/gmail.settings.basic';
@@ -34,6 +35,7 @@ function help() {
 Usage:
   gmail-doctor                    # Interactive dashboard
   gmail-doctor ui                 # Interactive dashboard
+  gmail-doctor takeover-check  # Guided review in the interactive dashboard
   gmail-doctor scan [--demo] [--json] [--no-color]
   gmail-doctor repair [--demo] [--dry-run]
   gmail-doctor setup --client /path/to/desktop-client.json
@@ -202,7 +204,7 @@ async function main() {
     return;
   }
   if (command==='help'||args.includes('--help')) { help(); return; }
-  if (command==='ui') {
+  if (command==='ui' || command==='takeover-check') {
     return launchTui({
       getAccounts: accounts,
       addAccount,
@@ -212,7 +214,8 @@ async function main() {
         return {settings,errors,...assess(settings),warnings:assess(settings).findings.filter(x=>x.severity==='warning').length,unchecked:errors.length};
       },
       saveBackup,
-      provider: async email=>gmailApi(await accessToken(email))
+      provider: async email=>gmailApi(await accessToken(email)),
+      startWithTakeover: command==='takeover-check'
     });
   }
   if (command === 'baseline') {

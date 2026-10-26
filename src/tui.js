@@ -2,6 +2,8 @@ import { select, checkbox, input } from '@inquirer/prompts';
 import { assess, readSettings, applyAction } from './core.js';
 import { renderReport, formatFinding } from './presentation.js';
 import { logo, layout } from './theme.js';
+import { steps, renderReview } from './takeover.js';
+import { spawn } from 'node:child_process';
 
 const line = '─'.repeat(54);
 export function dashboard(rows=[]) {
@@ -16,7 +18,7 @@ export function dashboard(rows=[]) {
   head.push(line,'Note: Gmail settings scan does not prove account security.');
   return head.join('\n');
 }
-export async function launchTui({getAccounts, addAccount, scanAccount, saveBackup, provider, demo=false}) {
+export async function launchTui({getAccounts, addAccount, scanAccount, saveBackup, provider, demo=false, startWithTakeover=false}) {
   if(!process.stdin.isTTY || !process.stdout.isTTY) throw new Error('Interactive mode requires a terminal. Use gmail-doctor scan --all for scripts.');
   const results=new Map();
   const chooseAccount=async()=> {
@@ -29,6 +31,37 @@ export async function launchTui({getAccounts, addAccount, scanAccount, saveBacku
     results.set(email,data);
     console.log(layout(renderReport({email,findings:data.findings,errors:data.errors,demo}),{color:!process.env.NO_COLOR}));
     return data;
+  };
+  const takeover=async()=>{
+    const account=await chooseAccount();
+    if(!account) {console.log('Add an account first.');return;}
+    const review={};
+    console.log('Account: '+account+' — Google security review is manual. Gmail Doctor cannot certify account safety.');
+    for(const step of steps) {
+      console.log('\n'+step.title+'\n'+step.help+'\n'+step.url);
+      const action=await select({message:'What would you like to do?',choices:[
+        {name:'Open official Google page',value:'open'},
+        {name:step.id==='twoStep'?'Confirmed 2-Step Verification is enabled':'Mark as reviewed (no suspicious activity noticed)',value:'reviewed'},
+        {name:step.id==='twoStep'?'2-Step Verification is OFF / I need help':'Report suspicious activity',value:'suspicious'},
+        {name:'Skip (not checked)',value:'skip'},
+        {name:'Finish review',value:'finish'}
+      ]});
+      if(action==='finish')break;
+      if(action==='open') {
+        const opener=process.platform==='darwin'?'open':'xdg-open';
+        const child=spawn(opener,[step.url],{stdio:'ignore'});
+        child.on('error',()=>console.log('Open manually: '+step.url));
+        const verdict=await select({message:'After reviewing Google, record your observation',choices:[
+          {name:step.id==='twoStep'?'I checked Google and 2-Step Verification is ON':'Reviewed; no suspicious activity noticed',value:'reviewed'},
+          {name:step.id==='twoStep'?'2-Step Verification is OFF / setup not complete':'Suspicious activity noticed',value:'suspicious'},
+          {name:'Not checked',value:'skip'}
+        ]});
+        if(verdict!=='skip')review[step.id]=verdict;
+      } else if(action!=='skip')review[step.id]=action;
+    }
+    console.log('\n'+renderReview(review));
+    if(review.twoStep!=='reviewed') console.log('ACTION: Verify and enable 2-Step Verification at https://myaccount.google.com/signinoptions/two-step-verification');
+    console.log('No Google account security settings were changed by Gmail Doctor.');
   };
   const review=async()=>{
     const email=await chooseAccount();
@@ -66,10 +99,12 @@ export async function launchTui({getAccounts, addAccount, scanAccount, saveBacku
     const after=await inspect(email);
     console.log(`Verified: ${after.findings.filter(x=>x.severity==='warning').length} warning(s) remaining. Check account security separately.`);
   };
+  if (startWithTakeover) { await takeover(); return; }
   while(true) {
     const list=await getAccounts();
     console.log('\n'+dashboard(list.map(email=>({email,...(results.get(email)||{})}))));
     const choice=await select({message:'Select action',choices:[
+      {name:'Account Takeover Check — guided Google security review',value:'takeover'},
       {name:'Scan all accounts',value:'scan'},
       {name:'Review findings / repair selected filters',value:'review'},
       {name:'Add Google account',value:'add'},
@@ -77,6 +112,7 @@ export async function launchTui({getAccounts, addAccount, scanAccount, saveBacku
     ]});
     if(choice==='exit') break;
     if(choice==='add') {await addAccount();continue;}
+    if(choice==='takeover') {await takeover();continue;}
     if(choice==='review') {await review();continue;}
     if(choice==='scan') {
       if(!list.length) { console.log('No accounts connected. Choose Add Google account first.'); continue; }
