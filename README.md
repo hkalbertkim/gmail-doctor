@@ -10,27 +10,20 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![Status](https://img.shields.io/badge/status-developer%20preview-orange)
 
-**Find the right solution for your Gmail problem — before installing anything.**
-
-[Problem-solving index](docs/GMAIL_SOLUTIONS_INDEX.md) · [Gmail Doctor CLI](#we-also-built-gmail-doctor) · [Contribute](#help-us-improve)
+[Solutions index](docs/GMAIL_SOLUTIONS_INDEX.md) · [CLI](#installation-and-usage) · [Contribute](#help-us-improve)
 
 </div>
 
-## What's your Gmail problem?
+## Find help for your Gmail problem
 
-**Choose the situation closest to yours. The right first step may be Google's official tools, not an app.**
+- **[Locked out or hacked?](#start-here--quick-triage)** — Start account recovery.
+- **[Lost access to 2FA?](#what-if-an-attacker-already-controls-2fa)** — Check backup sign-in options.
+- **[Suspicious activity or mail forwarding?](https://myaccount.google.com/security-checkup)** — Secure your account first.
+- **[Want to prevent problems?](#prevent-lockout-before-it-happens)** — Prepare recovery options now.
 
-| What's happening? | Where to go — and why |
-| --- | --- |
-| **My account was hacked or I can't sign in** | **[Account recovery steps](#start-here--quick-triage)** — start here if someone changed your password or recovery details. No installation required. |
-| **I lost my phone, 2FA key or verification method** | **[2FA recovery options](#what-if-an-attacker-already-controls-2fa)** — try another registered method and Google's official recovery process. |
-| **I see a suspicious login or unfamiliar device** | **[Google Security Checkup](https://myaccount.google.com/security-checkup)** — review active devices and recent events while you still have access. |
-| **My emails are being forwarded or filtered unexpectedly** | **[Gmail solutions index](docs/GMAIL_SOLUTIONS_INDEX.md)** — compare existing filter tools and the Gmail Doctor settings audit. |
-| **Nothing is wrong; I want to avoid lockout** | **[Prevention checklist](#prevent-lockout-before-it-happens)** — set up recovery methods and independent 2FA backups now. |
-| **I want to explore existing Gmail tools** | **[Gmail problem-solving index](docs/GMAIL_SOLUTIONS_INDEX.md)** — see official solutions and open-source tools, with capabilities and limitations. |
-| **I want to run Gmail Doctor** | **[Installation & CLI](#installation-and-usage)** — optional local Gmail settings audit and Emergency Help. |
+**[Explore all solutions](docs/GMAIL_SOLUTIONS_INDEX.md)** · **[Run Gmail Doctor](#installation-and-usage)**
 
-> **Locked out?** No third-party CLI can bypass Google sign-in or 2-Step Verification. Use [Google Account Recovery](https://accounts.google.com/signin/recovery). Never give your password or verification codes to people offering paid recovery.
+> Gmail Doctor cannot bypass Google's sign-in or account recovery. Never share passwords or verification codes.
 
 ## Why we put this together
 
@@ -57,7 +50,7 @@ We built **Gmail Doctor**, a local-first CLI that adds guided **Emergency Help**
 | I cannot sign in; my password or recovery details may have changed | **URGENT** | [Google Account Recovery](https://accounts.google.com/signin/recovery), preferably on a familiar device and network |
 | I know my password but lost my 2FA phone or security key | **URGENT** | Choose **Try another way**. Check saved backup codes, another signed-in device, registered passkeys or security keys; otherwise use [official recovery](https://accounts.google.com/signin/recovery) |
 | I can sign in but see unfamiliar devices or security alerts | **URGENT** | On a trusted device, run [Google Security Checkup](https://myaccount.google.com/security-checkup); review events, signed-in devices and recovery methods |
-| I can sign in but my Gmail filters or forwarding look strange | **REVIEW** | Secure the Google account first, then [scan Gmail settings](#run-gmail-doctor) and inspect suspicious rules |
+| I can sign in but my Gmail filters or forwarding look strange | **REVIEW** | Secure the Google account first, then [scan Gmail settings](#installation-and-usage) and inspect suspicious rules |
 | Nothing is wrong yet; I want to avoid losing access | **PREVENT** | Complete [the lockout-prevention checklist](#prevent-lockout-before-it-happens) |
 
 **Triage describes what to do next, not the probability of recovery.** A Google Account may still be recoverable even if an attacker changed 2FA or recovery information. Outcomes depend on Google's identity verification; no third-party CLI can guarantee them.
