@@ -1,6 +1,6 @@
 {
   "name": "gmail-doctor-cli",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "Local-first Gmail settings auditor and consent-based repair CLI",
   "type": "module",
   "bin": {

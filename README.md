@@ -181,3 +181,7 @@ On terminals supporting xterm SGR mouse reporting, Gmail Doctor captures wheel-u
 ## Inline terminal mode (v0.9)
 
 The interactive CLI now uses terminal scrollback (Ink Static) rather than taking over the alternate screen. Previous output remains in the terminal history and new results append at the bottom above a compact live command composer. The commands `/security` and `/2fa` open the corresponding **official Google pages** in your default browser. Google account security checks remain manual and NOT VERIFIED until you complete them with Google. No automatic filter repair was added.
+
+## Clean launch (v0.9.1)
+
+On an interactive terminal, Gmail Doctor clears the visible display and moves the cursor to the top before rendering its inline transcript and command composer. This does not use Alternate Screen, so new output can still enter normal terminal scrollback. Existing scrollback may remain available depending on terminal settings. Use `scan --all` for scripting.
