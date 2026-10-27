@@ -1,102 +1,77 @@
 <div align="center">
 
-<img src="assets/readme-hero.svg" alt="Gmail Doctor — local Gmail settings checks and account security guidance" width="100%" />
+<img src="assets/readme-hero.svg" alt="Gmail Doctor" width="560" />
 
 # Gmail Doctor
 
-**Know what to do when your Gmail account is at risk.**
+**Find practical help for Gmail problems — and check your settings if you still have access.**
 
 [![Release](https://img.shields.io/github/v/release/hkalbertkim/gmail-doctor)](https://github.com/hkalbertkim/gmail-doctor/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![Status](https://img.shields.io/badge/status-developer%20preview-orange)
 
-[Solutions index](docs/GMAIL_SOLUTIONS_INDEX.md) · [CLI](#installation-and-usage) · [Contribute](#help-us-improve)
-
 </div>
 
-## Table of Contents
+## Find what you need
 
-- 🔴 **[Emergency Help](#start-here--quick-triage)** — Account hacked or locked out? **Start here.**
-- **[2FA Recovery](#what-if-an-attacker-already-controls-2fa)** — Lost your phone or verification method?
-- **[Account Security](https://myaccount.google.com/security-checkup)** — Suspicious activity? Check your account first.
-- **[Prevention Guide](#prevent-lockout-before-it-happens)** — Prepare before anything goes wrong.
-- **[Gmail Solutions Index](docs/GMAIL_SOLUTIONS_INDEX.md)** — Explore existing tools and official resources.
-- **[Gmail Doctor CLI](#installation-and-usage)** — Scan settings and review suspicious filters.
-- **[Contributing](#help-us-improve)** — Suggest a resource or request a feature.
+- 🔴 **[Account hacked or locked out?](#emergency-help)** — **Start here.**
+- **[Lost your 2FA device?](#lost-access-to-2fa)** — Find other ways to sign in.
+- **[Suspicious account activity?](https://myaccount.google.com/security-checkup)** — Check recent activity and devices.
+- **[Prevent account lockout](#prevent-lockout)** — Secure your recovery options ahead of time.
+- **[Browse Gmail solutions](docs/GMAIL_SOLUTIONS_INDEX.md)** — Compare official help and open-source tools.
+- **[Use Gmail Doctor](#try-gmail-doctor)** — Check Gmail settings on your Mac.
+- **[Suggest a solution or feature](#help-us-improve)** — Help improve this project.
 
-## Why we put this together
+## Why we made this
 
-We've seen people discussing Gmail lockouts, account takeovers, lost 2FA methods and unexpected mail forwarding. **Capable solutions already exist** — Google's official recovery tools and open-source projects — but they're scattered, and they solve different problems.
+Gmail problems can be stressful, and useful answers are scattered across Google's help pages and open-source projects. We collected [a problem-based list of existing solutions](docs/GMAIL_SOLUTIONS_INDEX.md). We also built **Gmail Doctor** to help people review Gmail settings when they can still sign in.
 
-## Gmail solutions index
+You can use the guides **without installing anything**.
 
-**[Browse the Gmail problem-solving index →](docs/GMAIL_SOLUTIONS_INDEX.md)**
+## Emergency Help
 
-The index organizes existing tools by the problem they solve, whether you need account access, and what they cannot do. It includes official Google recovery guidance and open-source tools such as [gmailctl](https://github.com/mbrt/gmailctl), [GAMADV-XTD3](https://github.com/taers232c/GAMADV-XTD3) and [Got Your Back](https://github.com/GAM-team/got-your-back). **You do not need to install Gmail Doctor to use the index.**
+**Can't sign in, or think someone took over your account?**
 
-## We also built Gmail Doctor
+1. Go to **[Google Account Recovery](https://accounts.google.com/signin/recovery)**.
+2. Use a device and location you've signed in from before. Follow Google's instructions.
+3. If you still have another signed-in device or backup sign-in method, try it.
 
-We built **Gmail Doctor**, a local-first CLI that adds guided **Emergency Help**, multiple-account Gmail settings audits and review of suspicious forwarding/filter configurations. It's one option in the index, not a replacement for Google's identity verification.
+**Gmail Doctor cannot unlock accounts, bypass 2FA, or guarantee recovery.** Avoid anyone asking for your password or verification codes to “recover” your account.
 
-**[See what the CLI can and cannot do](#what-gmail-doctor-can-and-cannot-do)** · **[Install and run it](#installation-and-usage)**
+### Lost access to 2FA
 
-## Start here — quick triage
+If your phone or verification device is lost, select **“Try another way”** during Google sign-in. Google may accept an existing backup code, another signed-in phone, a registered security key or a passkey on another device.
 
-**First question: Can you still sign in to your Google Account?**
+If nothing works, use [Google Account Recovery](https://accounts.google.com/signin/recovery). A recovery attempt can take time and might not succeed.
 
-| Your situation | Priority | Do this first |
-| --- | --- | --- |
-| I cannot sign in; my password or recovery details may have changed | **URGENT** | [Google Account Recovery](https://accounts.google.com/signin/recovery), preferably on a familiar device and network |
-| I know my password but lost my 2FA phone or security key | **URGENT** | Choose **Try another way**. Check saved backup codes, another signed-in device, registered passkeys or security keys; otherwise use [official recovery](https://accounts.google.com/signin/recovery) |
-| I can sign in but see unfamiliar devices or security alerts | **URGENT** | On a trusted device, run [Google Security Checkup](https://myaccount.google.com/security-checkup); review events, signed-in devices and recovery methods |
-| I can sign in but my Gmail filters or forwarding look strange | **REVIEW** | Secure the Google account first, then [scan Gmail settings](#installation-and-usage) and inspect suspicious rules |
-| Nothing is wrong yet; I want to avoid losing access | **PREVENT** | Complete [the lockout-prevention checklist](#prevent-lockout-before-it-happens) |
+**Official Google guides:** [Account recovery](https://support.google.com/accounts/answer/7682439) · [Compromised account](https://support.google.com/accounts/answer/6294825) · [2FA problems](https://support.google.com/accounts/answer/185834)
 
-**Triage describes what to do next, not the probability of recovery.** A Google Account may still be recoverable even if an attacker changed 2FA or recovery information. Outcomes depend on Google's identity verification; no third-party CLI can guarantee them.
+## Prevent lockout
 
-### Decision guide
+Do these **before** losing access:
 
-```mermaid
-flowchart TD
-  A["Can you still sign in?"] -->|No| B["Use Google's official Account Recovery"]
-  B --> C["Try familiar device and available backup methods"]
-  A -->|Yes| D{"Unfamiliar activity?"}
-  D -->|Yes| E["Security Checkup: events, devices, password, recovery"]
-  D -->|No| F["Review recovery methods and 2FA backups"]
-  E --> G["Optional: Gmail Doctor settings scan"]
-  F --> G
-  G --> H["Inspect filters and forwarding; review before repair"]
-```
+- [ ] **Set up 2-Step Verification** and a second independent way to sign in.
+- [ ] **Save backup codes** somewhere safe, outside Gmail. Never share them.
+- [ ] **Confirm your recovery email and phone** are still yours.
+- [ ] **Review recent activity and signed-in devices** using [Google Security Checkup](https://myaccount.google.com/security-checkup).
+- [ ] **Check Gmail forwarding and filters** for changes you did not make.
+- [ ] **Protect your devices** against malware and suspicious browser extensions.
 
-### What if an attacker already controls 2FA?
+[Open Google Security Checkup](https://myaccount.google.com/security-checkup) · [Learn about backup codes](https://support.google.com/accounts/answer/1187538)
 
-**Don't assume recovery is impossible.** Google documents alternative recovery factors including previously saved backup codes, other signed-in devices, backup security keys and passkeys. If these are unavailable, use the [official recovery process](https://accounts.google.com/signin/recovery). Google may need additional time to verify ownership, and success is not guaranteed.
+## Try Gmail Doctor
 
-Official references:
-- [Recover a Google Account](https://support.google.com/accounts/answer/7682439)
-- [Secure a hacked account](https://support.google.com/accounts/answer/6294825)
-- [Fix common 2-Step Verification problems](https://support.google.com/accounts/answer/185834)
+Gmail Doctor is a free, local-first command-line tool that helps you review settings in Gmail accounts you **can still access**.
 
-## Prevent lockout before it happens
+- **Emergency Help** — explains where to go for account problems, no Google connection needed.
+- **Gmail settings scan** — checks filters, forwarding and other available settings.
+- **Review before changes** — you choose any filters to delete and must explicitly confirm.
 
-Use this checklist **while you still control your account**, ideally on a trusted device:
+It **cannot** check your Google sign-in sessions or 2FA status automatically. A clean Gmail settings scan does **not** mean your entire Google account is safe.
 
-- [ ] Use a unique, strong password or suitable passkey and protect the devices that store it.
-- [ ] Enable [2-Step Verification](https://myaccount.google.com/signinoptions/two-step-verification) if appropriate.
-- [ ] **Set up more than one independent sign-in/recovery option** so losing a phone does not leave you with no alternative.
-- [ ] Download and store [Google backup codes](https://support.google.com/accounts/answer/1187538) securely **outside the account**. Never share or paste them into this project.
-- [ ] Verify your recovery email and phone in [Google Account Security](https://myaccount.google.com/security).
-- [ ] Review signed-in devices, recent security events and connected third-party apps in [Security Checkup](https://myaccount.google.com/security-checkup).
-- [ ] Check Gmail's forwarding and filters; use a settings audit if you suspect changes.
-- [ ] If you suspect malware or session theft, secure the device as well as the account; changing passwords on an infected device may be insufficient.
+### Install and use
 
-**Important:** This checklist is guidance, not an automated security certification. Google security pages, not the Gmail API, control login sessions, 2FA and recovery options.
-
-## Installation and usage
-
-Gmail Doctor is a local-first CLI that audits available Gmail settings across connected accounts. **The audit can help while you still have access; it cannot recover a locked account.**
-
-Requires **Node.js 20+ and macOS Keychain** for the current local token store.
+**Requirements:** Mac with Node.js 20 or newer. No Google login is needed to read Emergency Help.
 
 ```bash
 git clone https://github.com/hkalbertkim/gmail-doctor.git
@@ -113,6 +88,9 @@ gmail-doctor scan --demo
 # Optional: print Emergency Help directly without connecting an account:
 gmail-doctor triage
 ```
+
+<details>
+<summary>Advanced: connect a real Gmail account (developer preview)</summary>
 
 ### Connect an account (developer preview)
 
@@ -149,9 +127,11 @@ gmail-doctor baseline check --account EMAIL  Check filter configuration drift
 gmail-doctor logout --account EMAIL   Remove local token
 ```
 
-## What Gmail Doctor can and cannot do
+</details>
 
-| Capability | Current status |
+## What it can and cannot do
+
+| Feature | Available? |
 | --- | --- |
 | Explain official recovery and prevention pathways | **Yes — guidance** |
 | Audit Gmail filters, forwarding rules, aliases and available settings | **Yes — with account authorization** |
@@ -165,17 +145,22 @@ gmail-doctor logout --account EMAIL   Remove local token
 
 **Scans are not proof of compromise.** Legitimate rules may look unusual. Conversely, a clean Gmail settings scan does not rule out account takeover.
 
-### Safety of repair
+### Before deleting a filter
 
 The tool only deletes explicitly selected Gmail filters after review and confirmation. It rescans before deleting and saves a local settings backup. **Backups do not currently provide automatic rollback.** Do not delete an unfamiliar rule until you understand its purpose.
 
 The requested Gmail OAuth scope is `gmail.settings.basic`, which can change settings; it is **not read-only**. Normal scans do not intentionally change Gmail settings.
 
-## Development and terminal UX
+<details>
+<summary>Developer notes: terminal interface</summary>
+
+### Development and terminal UX
 
 The current default interactive experience is a menu-based CLI with Emergency Help available from its main menu. Work on a Codex-inspired Rust terminal UI is isolated under [experiments/codex-tui-spike](experiments/codex-tui-spike) and is **not yet production-ready**. We will not claim Codex visual or behavioral parity until real macOS Terminal testing succeeds. Scanning and repair logic are preserved during this work.
 
 For technical context see [TUI acceptance gates](docs/CODEX_TUI_SPIKE.md) and [real user problem reports](docs/REDDIT_USER_REPORTS.md).
+
+</details>
 
 ## Help us improve
 
