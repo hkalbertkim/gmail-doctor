@@ -12,6 +12,8 @@
 
 </div>
 
+<br />
+
 ## Find what you need
 
 - 🔴 **[Account hacked or locked out?](#emergency-help)** — **Start here.**
@@ -22,11 +24,15 @@
 - **[Use Gmail Doctor](#try-gmail-doctor)** — Check Gmail settings on your Mac.
 - **[Suggest a solution or feature](#help-us-improve)** — Help improve this project.
 
+<br />
+
 ## Why we made this
 
 Gmail problems can be stressful, and useful answers are scattered across Google's help pages and open-source projects. We collected [a problem-based list of existing solutions](docs/GMAIL_SOLUTIONS_INDEX.md). We also built **Gmail Doctor** to help people review Gmail settings when they can still sign in.
 
 You can use the guides **without installing anything**.
+
+<br />
 
 ## Emergency Help
 
@@ -38,6 +44,8 @@ You can use the guides **without installing anything**.
 
 **Gmail Doctor cannot unlock accounts, bypass 2FA, or guarantee recovery.** Avoid anyone asking for your password or verification codes to “recover” your account.
 
+<br />
+
 ### Lost access to 2FA
 
 If your phone or verification device is lost, select **“Try another way”** during Google sign-in. Google may accept an existing backup code, another signed-in phone, a registered security key or a passkey on another device.
@@ -45,6 +53,8 @@ If your phone or verification device is lost, select **“Try another way”** d
 If nothing works, use [Google Account Recovery](https://accounts.google.com/signin/recovery). A recovery attempt can take time and might not succeed.
 
 **Official Google guides:** [Account recovery](https://support.google.com/accounts/answer/7682439) · [Compromised account](https://support.google.com/accounts/answer/6294825) · [2FA problems](https://support.google.com/accounts/answer/185834)
+
+<br />
 
 ## Prevent lockout
 
@@ -59,6 +69,8 @@ Do these **before** losing access:
 
 [Open Google Security Checkup](https://myaccount.google.com/security-checkup) · [Learn about backup codes](https://support.google.com/accounts/answer/1187538)
 
+<br />
+
 ## Try Gmail Doctor
 
 Gmail Doctor is a free, local-first command-line tool that helps you review settings in Gmail accounts you **can still access**.
@@ -72,6 +84,8 @@ It **cannot** check your Google sign-in sessions or 2FA status automatically. A 
 ### Install and use
 
 **Requirements:** Mac with Node.js 20 or newer. No Google login is needed to read Emergency Help.
+
+<br />
 
 ```bash
 git clone https://github.com/hkalbertkim/gmail-doctor.git
@@ -129,6 +143,8 @@ gmail-doctor logout --account EMAIL   Remove local token
 
 </details>
 
+<br />
+
 ## What it can and cannot do
 
 | Feature | Available? |
@@ -162,11 +178,15 @@ For technical context see [TUI acceptance gates](docs/CODEX_TUI_SPIKE.md) and [r
 
 </details>
 
+<br />
+
 ## Help us improve
 
 **Did the index help you find the right next step?** If a useful official page or trustworthy open-source project is missing, or Gmail Doctor lacks a feature you need, [open an issue](https://github.com/hkalbertkim/gmail-doctor/issues). Include the situation and the resource or feature you are suggesting, **not** your email address, login details, recovery codes or tokens.
 
 Corrections and pull requests are welcome. We review suggestions but cannot guarantee recovery outcomes or commit to implementing every request.
+
+<br />
 
 ## Privacy and project information
 
