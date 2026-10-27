@@ -14,16 +14,15 @@
 
 </div>
 
-## Find help for your Gmail problem
+## Table of Contents
 
-- **[Locked out or hacked?](#start-here--quick-triage)** — Start account recovery.
-- **[Lost access to 2FA?](#what-if-an-attacker-already-controls-2fa)** — Check backup sign-in options.
-- **[Suspicious activity or mail forwarding?](https://myaccount.google.com/security-checkup)** — Secure your account first.
-- **[Want to prevent problems?](#prevent-lockout-before-it-happens)** — Prepare recovery options now.
-
-**[Explore all solutions](docs/GMAIL_SOLUTIONS_INDEX.md)** · **[Run Gmail Doctor](#installation-and-usage)**
-
-> Gmail Doctor cannot bypass Google's sign-in or account recovery. Never share passwords or verification codes.
+- 🔴 **[Emergency Help](#start-here--quick-triage)** — Account hacked or locked out? **Start here.**
+- **[2FA Recovery](#what-if-an-attacker-already-controls-2fa)** — Lost your phone or verification method?
+- **[Account Security](https://myaccount.google.com/security-checkup)** — Suspicious activity? Check your account first.
+- **[Prevention Guide](#prevent-lockout-before-it-happens)** — Prepare before anything goes wrong.
+- **[Gmail Solutions Index](docs/GMAIL_SOLUTIONS_INDEX.md)** — Explore existing tools and official resources.
+- **[Gmail Doctor CLI](#installation-and-usage)** — Scan settings and review suspicious filters.
+- **[Contributing](#help-us-improve)** — Suggest a resource or request a feature.
 
 ## Why we put this together
 
